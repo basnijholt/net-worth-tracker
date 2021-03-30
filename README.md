@@ -1,18 +1,17 @@
 # simple `crypto-tracker`
 **See your current portofolio balance without the hassle.**
 
-### Usage
-* Edit [`example_private_variables.py`](example_private_variables.py) and rename it to `private_variables.py`
-* Install [`ccxt`](https://github.com/ccxt/ccxt) with `pip install ccxt`
-* Run `python holdings.py`
+Can extract data from:
+- Nexo.io
+- Blockfi
+- Binance Smart Chain
+- Binance
+- Exodus wallet
 
-### Example
-```bash
-python holdings.py
-$1266.6042894233005 on binance
-$616.0568325810851 on binance
-$5.12870451145 on hitbtc
-$1129.4271771853316 on cex
-------------------------
-$3017.2170037011674 in total
+### Usage
+Run [`crypto-tracker.ipynb`](crypto-tracker.ipynb) and download the correct data.
+
+Set cronjob, using crontab -e
+```
+0 * * * * ~/Sync/Overig/crypto-tracker/run-and-upload.sh
 ```
