@@ -332,6 +332,7 @@ def save_data(
     balances_bsc,
     eur_balances,
     bsc,
+    folder=Path("data"),
 ):
     balances_per_category = dict(
         binance=balances_binance,
@@ -357,5 +358,54 @@ def save_data(
 
     dt_str = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     fname = dt_str + ".json"
-    with open(fname, "w") as f:
+    folder.mkdir(exist_ok=True)
+    with open(folder / fname, "w") as f:
         json.dump(data, f, indent="  ")
+
+
+def load_data(folder=Path("data")):
+    fnames = sorted(Path(folder).glob("*.json"))
+    datas = {}
+    for fname in fnames:
+        with fname.open("r") as f:
+            dt = datetime.datetime.strptime(fname.with_suffix("").name, "%Y%m%d-%H%M%S")
+            datas[dt] = json.load(f)
+    return datas
+
+
+def data_to_df(date, data):
+    lst = [
+        {
+            "date": date,
+            "symbol": coin,
+            "amount": data["balances"][coin],
+            "value": data["eur_balances"].get(coin),
+        }
+        for coin in data["balances"]
+    ]
+    for d in lst:
+        for where, info in data["balances_per_category"].items():
+            d["ratio_in_" + where] = info.get(d["symbol"], 0) / d["amount"]
+
+    df = pd.DataFrame(lst)
+    for col in df.columns:
+        if col.startswith("ratio_in"):
+            df[col.replace("ratio_in", "value_in")] = df[col] * df["value"]
+    return df
+
+
+def get_df(key, datas):
+    df = pd.DataFrame(
+        [data[key] for data in datas.values()], [date for date in datas.keys()]
+    ).sort_index()
+    order = df.iloc[-1].sort_values(ascending=False).index
+    return df[order]
+
+
+def get_df_wallet(wallet, datas):
+    df = pd.DataFrame(
+        [data["balances_per_category"][wallet] for data in datas.values()],
+        [date for date in datas.keys()],
+    ).sort_index()
+    order = df.iloc[-1].sort_values(ascending=False).index
+    return df[order]

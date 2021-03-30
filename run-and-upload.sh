@@ -3,5 +3,5 @@
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 cd $DIR
 . ~/.bash_profile
-jupyter nbconvert --ExecutePreprocessor.timeout=600 --to html --execute crypto-tracker.ipynb
+jupyter nbconvert --ExecutePreprocessor.timeout=600 --to html --execute crypto-tracker.ipynb  --no-input
 fu crypto-tracker.html
