@@ -156,7 +156,9 @@ def get_bsc_balance(my_address: Optional[str] = None, api_key: Optional[str] = N
 
 
 @lru_cache
-def scrape_yieldwatch(my_address: Optional[str] = None, headless=True):
+def scrape_yieldwatch(
+    my_address: Optional[str] = None, headless=True, timeout: int = 30
+):
     config = read_config()
     if my_address is None:
         my_address = config["bsc"]["address"]
@@ -164,7 +166,7 @@ def scrape_yieldwatch(my_address: Optional[str] = None, headless=True):
     if headless:
         chrome_options.add_argument("--headless")
     with webdriver.Chrome(options=chrome_options) as driver:
-        wait = WebDriverWait(driver, 10)
+        wait = WebDriverWait(driver, timeout)
         driver.get("https://www.yieldwatch.net/")
         for letter in my_address:
             address_bar = driver.find_element_by_id("addressInputField")
@@ -184,7 +186,7 @@ def scrape_yieldwatch(my_address: Optional[str] = None, headless=True):
 
         # Wait until the next page is loaded
         element_present = presence_of_element_located((By.CLASS_NAME, "content.active"))
-        WebDriverWait(driver, timeout=10).until(element_present)
+        WebDriverWait(driver, timeout).until(element_present)
 
         infos = defaultdict(dict)
         segments = driver.find_elements_by_class_name("ui.segment")
