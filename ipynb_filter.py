@@ -37,4 +37,5 @@ else:
         "editable",
         "collapsed",
         "scrolled",
+        "execution",
     ]
