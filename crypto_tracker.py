@@ -384,6 +384,8 @@ def data_to_df(date, data):
         for coin in data["balances"]
     ]
     for d in lst:
+        if d["value"] is not None:
+            d["price"] = d["value"] / d["amount"]
         for where, info in data["balances_per_category"].items():
             d["ratio_in_" + where] = info.get(d["symbol"], 0) / d["amount"]
 
@@ -392,6 +394,11 @@ def data_to_df(date, data):
         if col.startswith("ratio_in"):
             df[col.replace("ratio_in", "value_in")] = df[col] * df["value"]
     return df
+
+
+def datas_to_df(datas):
+    dfs = [data_to_df(date, data) for date, data in datas.items()]
+    return pd.concat(dfs).sort_values("date")
 
 
 def get_df(key, datas):
@@ -409,3 +416,33 @@ def get_df_wallet(wallet, datas):
     ).sort_index()
     order = df.iloc[-1].sort_values(ascending=False).index
     return df[order]
+
+
+def at_time_ago(df, time_ago):
+    now = datetime.datetime.now()
+    dt = now - time_ago
+    i = (df.date - dt).abs().argmin()
+    date = df.date.iloc[i]
+    return df[df.date == date].set_index("symbol")
+
+
+def overview_df(df):
+    df_24h = at_time_ago(df, datetime.timedelta(hours=24))
+    df_last = at_time_ago(df, datetime.timedelta(0))
+    df_1w = at_time_ago(df, datetime.timedelta(days=7))
+    df_last["1w price (%)"] = 100 * (df_last.price - df_1w.price) / df_1w.price
+    df_last["24h price (%)"] = 100 * (df_last.price - df_24h.price) / df_24h.price
+    df_last["ATH price (€)"] = df.groupby("symbol").max().price
+    df_last["ATH value (€)"] = df.groupby("symbol").max().value
+
+    return df_last[
+        [
+            "amount",
+            "value",
+            "price",
+            "24h price (%)",
+            "1w price (%)",
+            "ATH price (€)",
+            "ATH value (€)",
+        ]
+    ].sort_values("value", ascending=False)
