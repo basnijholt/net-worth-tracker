@@ -15,3 +15,14 @@ Set cronjob, using crontab -e
 ```
 0 * * * * ~/Sync/Overig/crypto-tracker/run-and-upload.sh
 ```
+
+### Install
+
+```
+pip install -r requirements.txt
+```
+and
+```
+sudo apt install chromium-chromedriver  # Ununtu
+brew cask install chromedriver  # MacOS
+```
