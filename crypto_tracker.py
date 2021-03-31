@@ -99,9 +99,13 @@ def get_nexo_balances(
     df = pd.read_csv(csv_fname)
     summed = df[df.Type == "Deposit"].groupby("Currency").sum("Amount")
     balances = {i: row.Amount for i, row in summed.iterrows()}
+    renames = {"NEXOBEP2": "NEXO"}
+    for old, new in renames.items():
+        if old in balances:
+            balances[new] = balances.pop(old)
     nexo = df[df.Type == "Interest"].groupby("Currency").sum("Amount")
     assert len(nexo) == 1
-    balances["NEXO"] = nexo.iloc[0].Amount
+    balances["NEXO"] = balances.get("NEXO", 0) + nexo.iloc[0].Amount
     return balances
 
 
