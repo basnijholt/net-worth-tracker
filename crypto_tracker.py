@@ -444,8 +444,8 @@ def overview_df(df):
 
     overview = df_last[
         [
-            "amount",
             "value",
+            "amount",
             "price",
             "24h price (%)",
             "1w price (%)",
@@ -465,5 +465,16 @@ def overview_df(df):
         color = "red" if val < 0 else "green"
         return "color: %s" % color
 
-    cols = [c for c in overview.columns if "%" in c]
-    return overview.style.applymap(color_negative_red, subset=pd.IndexSlice[:, cols])
+    net_worth = df_last.value.sum()
+    overview["value"] = overview["value"].apply(
+        lambda x: f"€{x:.2f} ({100*x/net_worth:.1f}%)"
+    )
+    pct_cols = [c for c in overview.columns if "%" in c]
+    format = {c: "{:+.2f}%" for c in pct_cols}
+    format["ATH value (€)"] = "€{:.2f}"
+    for x in ["price", "ATH price (€)", "ATL price (€)"]:
+        format[x] = "€{:.4f}"
+
+    return overview.style.applymap(
+        color_negative_red, subset=pd.IndexSlice[:, pct_cols]
+    ).format(format, na_rep="-")
