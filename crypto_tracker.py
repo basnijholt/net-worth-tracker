@@ -432,17 +432,34 @@ def overview_df(df):
     df_1w = at_time_ago(df, datetime.timedelta(days=7))
     df_last["1w price (%)"] = 100 * (df_last.price - df_1w.price) / df_1w.price
     df_last["24h price (%)"] = 100 * (df_last.price - df_24h.price) / df_24h.price
-    df_last["ATH price (€)"] = df.groupby("symbol").max().price
+    df_last["ATH price (€)"] = ATH = df.groupby("symbol").max().price
     df_last["ATH value (€)"] = df.groupby("symbol").max().value
+    ATL = df.groupby("symbol").min().price
+    df_last["ATH change (%)"] = 100 * (df_last.price - ATH) / ATH
+    df_last["ATL change (%)"] = 100 * (df_last.price - ATL) / ATL
 
-    return df_last[
+    overview = df_last[
         [
             "amount",
             "value",
             "price",
             "24h price (%)",
             "1w price (%)",
+            "ATH change (%)",
+            "ATL change (%)",
             "ATH price (€)",
             "ATH value (€)",
         ]
     ].sort_values("value", ascending=False)
+
+    def color_negative_red(val):
+        """
+        Takes a scalar and returns a string with
+        the css property `'color: red'` for negative
+        strings, black otherwise.
+        """
+        color = "red" if val < 0 else "green"
+        return "color: %s" % color
+
+    cols = [c for c in overview.columns if "%" in c]
+    return overview.style.applymap(color_negative_red, subset=pd.IndexSlice[:, cols])
