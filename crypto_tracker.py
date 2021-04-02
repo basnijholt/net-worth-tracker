@@ -170,7 +170,7 @@ def scrape_yieldwatch(
     if headless:
         chrome_options.add_argument("--headless")
     with webdriver.Chrome(options=chrome_options) as driver:
-        wait = WebDriverWait(driver, timeout)
+        WebDriverWait(driver, timeout)
         driver.get("https://www.yieldwatch.net/")
         for letter in my_address:
             address_bar = driver.find_element_by_id("addressInputField")
@@ -205,26 +205,16 @@ def scrape_yieldwatch(
                 for box in boxes:
                     header, content = box.find_elements_by_class_name("row")
                     box_name = header.text.split("\n")[0]
-                    text = content.text
-                    # Fix the case "Deposit\nPending\nHarvest 0.079822 sBDO"
-                    # and replace the space after "Harvest by a \n"
-                    for key in ["Deposit", "Yield", "Pending", "Harvest"]:
-                        text = text.replace(key + " ", key + "\n")
-                    text = text.split("\n")
-                    cols = []
-                    for x in text:
-                        if not x[0].isdigit():
-                            cols.append(x)
-                        else:
-                            break
-                    d = {}
-                    # Get only the first two columns and skip the $ amounts
-                    for col, x in zip(cols, text[len(cols) :][: len(cols)]):
-                        # in one case `x = '159.77 BDO $181.01'`, so we fix it
-                        amount_coin = x.split(" $")[0]  # e.g., now "159.77 BDO"
-                        amount, coin = amount_coin.split(" ", 1)
-                        d[col] = (float(amount), coin)
-                    infos[which][box_name] = d
+                    # Get the columns in the box, only the first two are relevant
+                    columns = content.find_elements_by_class_name("collapsing.right.aligned")
+                    names = columns[0].text.split("\n")
+                    amounts = columns[1].text.split("\n")
+                    d = defaultdict(list)
+                    for i, amount in enumerate(amounts):
+                        amount, coin = amount.split(" ", 1)
+                        name = names[min(i, len(names) - 1)]
+                        d[name].append((float(amount), coin))
+                    infos[which][box_name] = dict(d)
     return dict(infos)
 
 
@@ -237,13 +227,14 @@ def bsc_to_balances(bsc):
     balances = defaultdict(float)
     for defi, vaults in bsc.items():
         for vault, info in vaults.items():
-            for (type_, (amount, coin)) in info.items():
+            for (type_, amount_coin_list) in info.items():
                 if type_ == "Harvest":
                     # is already taken into account in wallet balance
                     continue
-                norm_coin = vault_coin_mapping.get(vault, coin)
-                norm_coin = coin_renames.get(norm_coin, norm_coin)
-                balances[norm_coin] += float(amount)
+                for amount, coin in amount_coin_list:
+                    norm_coin = vault_coin_mapping.get(vault, coin)
+                    norm_coin = coin_renames.get(norm_coin, norm_coin)
+                    balances[norm_coin] += float(amount)
     return dict(balances)
 
 
