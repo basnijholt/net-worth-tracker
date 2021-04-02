@@ -438,10 +438,16 @@ def overview_df(df):
     df_last["24h price (%)"] = 100 * (df_last.price - df_24h.price) / df_24h.price
     df_last["ATH price (€)"] = ATH = df.groupby("symbol").max().price
     df_last["ATH value (€)"] = df.groupby("symbol").max().value
+    df_last["ATL value (€)"] = df.groupby("symbol").min().value
     ATL = df.groupby("symbol").min().price
     df_last["ATH change (%)"] = 100 * (df_last.price - ATH) / ATH
     df_last["ATL change (%)"] = 100 * (df_last.price - ATL) / ATL
 
+    return df_last
+
+
+def styled_overview_df(df):
+    df_last = overview_df(df)
     overview = df_last[
         [
             "value",
@@ -472,6 +478,7 @@ def overview_df(df):
     pct_cols = [c for c in overview.columns if "%" in c]
     format = {c: "{:+.2f}%" for c in pct_cols}
     format["ATH value (€)"] = "€{:.2f}"
+    format["amount"] = "{:.4f}"
     for x in ["price", "ATH price (€)", "ATL price (€)"]:
         format[x] = "€{:.4f}"
 
