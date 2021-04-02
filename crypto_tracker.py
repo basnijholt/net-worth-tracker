@@ -253,6 +253,7 @@ def get_coins(balances, cg: CoinGeckoAPI):
         "uni": "Uniswap",
         "one": "Harmony",
         "onx": "OnX Finance",
+        "bunny": "Pancake Bunny",
     }
     symbols = [c.lower() for c in balances.keys()]
 
