@@ -6,3 +6,4 @@ pycoingecko
 selenium
 https://github.com/sammchardy/python-binance/archive/refs/heads/master.zip  # because 0.7.10 is not on PyPI
 jupyter
+keyring
