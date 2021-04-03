@@ -224,6 +224,7 @@ def bsc_to_balances(bsc):
     vault_coin_mapping = {
         "BELT-BNB BELT LP": "BELT-BNB-LP",
         "Belt Venus BLP": "Belt-Venus-BLP",
+        "AUTO-WBNB Pool": "AUTO-WBNB-LP",
     }
     coin_renames = {"Cake": "CAKE", "sBDO": "SBDO"}
     balances = defaultdict(float)
