@@ -206,7 +206,9 @@ def scrape_yieldwatch(
                     header, content = box.find_elements_by_class_name("row")
                     box_name = header.text.split("\n")[0]
                     # Get the columns in the box, only the first two are relevant
-                    columns = content.find_elements_by_class_name("collapsing.right.aligned")
+                    columns = content.find_elements_by_class_name(
+                        "collapsing.right.aligned"
+                    )
                     names = columns[0].text.split("\n")
                     amounts = columns[1].text.split("\n")
                     d = defaultdict(list)
@@ -474,6 +476,9 @@ def styled_overview_df(df):
     for x in ["price", "ATH price (€)", "ATL price (€)"]:
         format[x] = "€{:.4f}"
 
-    return overview.style.applymap(
-        color_negative_red, subset=pd.IndexSlice[:, pct_cols]
-    ).format(format, na_rep="-")
+    return (
+        overview.style.applymap(color_negative_red, subset=pd.IndexSlice[:, pct_cols])
+        .format(format, na_rep="-")
+        .bar(subset=["ATL change (%)"], color=["lightgreen"], align="left")
+        .bar(subset=["ATH change (%)"], color=["red"], align="zero")
+    )
