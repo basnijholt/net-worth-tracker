@@ -11,6 +11,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 from net_worth_tracker.utils import read_config
 
+IGNORE_TOKENS = {"ONX"}
+
 
 @lru_cache
 def get_bep20_balances(my_address: Optional[str] = None, api_key: Optional[str] = None):
@@ -27,13 +29,16 @@ def get_bep20_balances(my_address: Optional[str] = None, api_key: Optional[str] 
     )
     balances = defaultdict(float)
     for d in txs:
+        symbol = d["tokenSymbol"]
+        if symbol in IGNORE_TOKENS:
+            continue
         if d["to"].lower() == my_address:
             # Incoming tokens
             sign = +1
         else:
             sign = -1
         factor = 10 ** int(d["tokenDecimal"])
-        balances[d["tokenSymbol"]] += sign * float(d["value"]) / factor
+        balances[symbol] += sign * float(d["value"]) / factor
 
     # Get BNB balance
     balances["BNB"] += float(bsc.get_bnb_balance(address=my_address)) / 1e18
