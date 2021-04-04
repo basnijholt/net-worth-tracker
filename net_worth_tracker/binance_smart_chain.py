@@ -32,7 +32,8 @@ def get_bep20_balances(my_address: Optional[str] = None, api_key: Optional[str] 
             sign = +1
         else:
             sign = -1
-        balances[d["tokenSymbol"]] += sign * float(d["value"]) / 1e18
+        factor = 10 ** int(d["tokenDecimal"])
+        balances[d["tokenSymbol"]] += sign * float(d["value"]) / factor
 
     # Get BNB balance
     balances["BNB"] += float(bsc.get_bnb_balance(address=my_address)) / 1e18
