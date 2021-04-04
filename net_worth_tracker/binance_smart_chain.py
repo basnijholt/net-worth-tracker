@@ -99,7 +99,11 @@ def scrape_yieldwatch(
                 which = defi.text.split("\n")[0]
                 for box in boxes:
                     header, content = box.find_elements_by_class_name("row")
-                    box_name = header.text.split("\n")[0]
+                    header_text = header.text.split("\n")
+                    box_name = header_text[0]
+                    dollar_value = header_text[1]
+                    assert "$" in dollar_value
+                    dollar_value = float(dollar_value.replace(",", "").replace("$", ""))
                     # Get the columns in the box, only the first two are relevant
                     columns = content.find_elements_by_class_name(
                         "collapsing.right.aligned"
@@ -111,6 +115,8 @@ def scrape_yieldwatch(
                         amount, coin = amount.split(" ", 1)
                         name = names[min(i, len(names) - 1)]
                         d[name].append((float(amount), coin))
+                    d = dict(d)
+                    d["dollar_value"] = dollar_value
                     infos[which][box_name] = dict(d)
     return dict(infos)
 
@@ -126,9 +132,11 @@ def yieldwatch_to_balances(yieldwatch):
     for defi, vaults in yieldwatch.items():
         for vault, info in vaults.items():
             for (type_, amount_coin_list) in info.items():
-                if type_ == "Harvest":
+                if type_ in ("Harvest", "dollar_value"):
                     # is already taken into account in wallet balance
+                    # if Harvest, and dollar_value is used elsewhere.
                     continue
+
                 for amount, coin in amount_coin_list:
                     norm_coin = vault_coin_mapping.get(vault, coin)
                     norm_coin = coin_renames.get(norm_coin, norm_coin)
