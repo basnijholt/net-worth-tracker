@@ -1,6 +1,8 @@
 import time
+from functools import lru_cache
 from pathlib import Path
 
+import pandas as pd
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
@@ -67,6 +69,24 @@ def scrape_nexo_csv(username: str, timeout=30):
                 print(f"Downloaded {fname}")
                 return
         print("Didn't download the file")
+
+
+@lru_cache
+def get_nexo_balances(
+    csv_fname: str = "~/Downloads/nexo_transactions.csv",
+):
+    print("Download csv from https://platform.nexo.io/transactions")
+    df = pd.read_csv(csv_fname)
+    summed = df[df.Type == "Deposit"].groupby("Currency").sum("Amount")
+    balances = {i: row.Amount for i, row in summed.iterrows()}
+    renames = {"NEXOBEP2": "NEXO"}
+    for old, new in renames.items():
+        if old in balances:
+            balances[new] = balances.pop(old)
+    nexo = df[df.Type == "Interest"].groupby("Currency").sum("Amount")
+    assert len(nexo) == 1
+    balances["NEXO"] = balances.get("NEXO", 0) + nexo.iloc[0].Amount
+    return balances
 
 
 if __name__ == "__main__":
