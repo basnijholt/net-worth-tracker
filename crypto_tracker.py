@@ -266,7 +266,7 @@ def get_coins(balances, cg: CoinGeckoAPI):
     symbol_map = defaultdict(list)
     for c in coin_list:
         symbol_map[c["symbol"]].append(c)
-    duplicates = set(symbol for symbol, lst in symbol_map.items() if len(lst) > 1)
+    duplicates = {symbol for symbol, lst in symbol_map.items() if len(lst) > 1}
     duplicates = duplicates.intersection(symbols)
     unknown_duplicates = duplicates.difference(sym2name.keys())
     for symbol in unknown_duplicates:
