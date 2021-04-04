@@ -109,7 +109,7 @@ def scrape_yieldwatch(
     return dict(infos)
 
 
-def bsc_to_balances(yieldwatch):
+def yieldwatch_to_balances(yieldwatch):
     vault_coin_mapping = {
         "BELT-BNB BELT LP": "BELT-BNB-LP",
         "Belt Venus BLP": "Belt-Venus-BLP",
