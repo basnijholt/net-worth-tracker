@@ -34,8 +34,8 @@ def get_binance_balances():
     uri = "https://api.binance.com/sapi/v1/bswap/liquidity"
     try:
         pools = client._request("get", uri, True, data=dict())
-    except BinanceAPIException:  # not sure why it happens...
-        pass
+    except BinanceAPIException as e:  # not sure why it happens...
+        print("API error 'sapi/v1/bswap/liquidity'", e)
     else:
         assets = [p["share"]["asset"] for p in pools]
         for d in assets:
