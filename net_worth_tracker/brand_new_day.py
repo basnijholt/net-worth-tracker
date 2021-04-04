@@ -88,13 +88,16 @@ def scrape_brand_new_day(
 
 
 def get_balances(scraped_data):
+    to_float = lambda x: float(  # noqa: E731
+        x.replace("€", "").replace(".", "").replace(",", ".").strip()
+    )
     balances = {
-        d["Fondsnaam"]: float(d["Aantal"].replace(",", ""))
+        d["Fondsnaam"]: to_float(d["Aantal"])
         for d in scraped_data
         if d["Aantal"] != "" and ("%" not in d["Aantal"])
     }
     balances_eur = {
-        d["Fondsnaam"]: float(d["Koers"].replace("€", "").replace(",", "").strip())
+        d["Fondsnaam"]: to_float(d["Waarde"])
         for d in scraped_data
         if d["Aantal"] != "" and ("%" not in d["Aantal"])
     }
