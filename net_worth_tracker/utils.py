@@ -42,6 +42,13 @@ def read_config(path: Path = DEFAULT_CONFIG):
     return config
 
 
+def fname_from_date(folder, ext=".json") -> Path:
+    dt_str = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    fname = Path(folder) / f"{dt_str}.{ext}"
+    fname.parent.mkdir(exist_ok=True)
+    return fname
+
+
 def combine_balances(*balances_dicts):
     balances = defaultdict(float)
     for bal in balances_dicts:
@@ -83,10 +90,8 @@ def save_data(
         defi=dict(bsc=bsc),
     )
 
-    dt_str = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-    fname = dt_str + ".json"
-    folder.mkdir(exist_ok=True)
-    with open(folder / fname, "w") as f:
+    fname = fname_from_date(folder)
+    with fname.open("w") as f:
         json.dump(data, f, indent="  ")
 
 

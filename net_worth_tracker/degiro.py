@@ -1,4 +1,3 @@
-import datetime
 import getpass
 import json
 from collections import defaultdict
@@ -6,8 +5,11 @@ from functools import cached_property, lru_cache
 from pathlib import Path
 
 import requests
+import yfinance as yf
 
-from .utils import get_password
+from .utils import fname_from_date, get_password
+
+FOLDER = Path(__file__).parent.parent / "degiro_data"
 
 
 class DeGiro:
@@ -153,12 +155,41 @@ class DeGiro:
         return holdings
 
 
-if __name__ == "__main__":
-    dg = DeGiro().login("basnijholt", with_2fa=True)
+def load_latest_data(folder=FOLDER):
+    last_file = sorted(folder.glob("*.json"))[-1]
+    with last_file.open("r") as f:
+        return json.load(f)
+
+
+def get_latest_prices(tickers):
+    price = {}
+    for ticker in tickers:
+        if ticker == "EUR":
+            price[ticker] = 1
+            continue
+        for ext in [".AS", ".DE", ""]:
+            # Try AMS exchange, then German, then anything.
+            t = yf.Ticker(ticker + ext)
+            if "open" in t.info:
+                assert t.info["currency"] == "EUR"
+                price[ticker] = t.info["open"]
+                break
+    return price
+
+
+def get_degiro_balances(folder=FOLDER):
+    data = load_latest_data(folder)
+    prices = get_latest_prices(data)
+    return {t: info["size"] * prices[t] for t, info in data.items()}
+
+
+def update_data(username="basnijholt", with_2fa=True):
+    dg = DeGiro().login(username, with_2fa=with_2fa)
     holdings = dg.get_holdings()
     print(holdings)
-    dt_str = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-    fname = Path("degiro_data") / f"{dt_str}.json"
-    fname.parent.mkdir(exist_ok=True)
-    with fname.open("w") as f:
+    with fname_from_date(FOLDER).open("w") as f:
         json.dump(holdings, f, indent="  ")
+
+
+if __name__ == "__main__":
+    update_data("basnijholt")
