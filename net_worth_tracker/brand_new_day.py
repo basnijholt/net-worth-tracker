@@ -1,3 +1,5 @@
+from typing import Optional
+
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
@@ -11,11 +13,15 @@ from .utils import get_password
 
 
 def scrape_brand_new_day(
-    username: str,
+    username: Optional[str] = None,
+    password: Optional[str] = None,
     timeout=30,
     headless=True,
 ):
-    password = get_password(username, "brandnewday")
+    if username is None:
+        username = get_password("username", "brandnewday")
+    if password is None:
+        password = get_password(username, "brandnewday")
     chrome_options = Options()
     if headless:
         chrome_options.add_argument("--headless")
@@ -81,6 +87,20 @@ def scrape_brand_new_day(
         return rows
 
 
+def get_balances(scraped_data):
+    balances = {
+        d["Fondsnaam"]: float(d["Aantal"].replace(",", ""))
+        for d in scraped_data
+        if d["Aantal"] != "" and ("%" not in d["Aantal"])
+    }
+    balances_eur = {
+        d["Fondsnaam"]: float(d["Koers"].replace("€", "").replace(",", "").strip())
+        for d in scraped_data
+        if d["Aantal"] != "" and ("%" not in d["Aantal"])
+    }
+    return balances, balances_eur
+
+
 if __name__ == "__main__":
-    bnd = scrape_brand_new_day("basnijholt")
+    bnd = scrape_brand_new_day()
     print(bnd)
