@@ -1,12 +1,19 @@
 # simple `crypto-tracker`
 **See your current portofolio balance without the hassle.**
 
-Can extract data from:
+Can extract crypto portfolio data from:
 - Nexo.io
-- Blockfi
-- Binance Smart Chain
-- Binance
+- BlockFi
+- Binance Smart Chain (BEP20 tokens + DeFi via [YieldWatch.net](YieldWatch.net))
+- Binance.com
 - Exodus wallet
+- Celsius
+- CoinGecko (for prices)
+
+and stock/cash balance from:
+- Brand New Day
+- DeGiro
+
 
 ### Usage
 Run [`crypto-tracker.ipynb`](crypto-tracker.ipynb) and download the correct data.
