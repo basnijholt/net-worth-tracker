@@ -177,6 +177,7 @@ def get_latest_prices(tickers):
     return price
 
 
+@lru_cache
 def get_degiro_balances(folder=FOLDER):
     data = load_latest_data(folder)
     prices = get_latest_prices(data)
