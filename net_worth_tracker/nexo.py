@@ -1,6 +1,7 @@
 import time
 from functools import lru_cache
 from pathlib import Path
+from typing import Optional
 
 import pandas as pd
 from selenium import webdriver
@@ -12,8 +13,16 @@ from selenium.webdriver.support.ui import WebDriverWait
 from .utils import get_password
 
 
-def scrape_nexo_csv(username: str, timeout=30):
-    password = get_password(username, "nexo")
+def scrape_nexo_csv(
+    username: Optional[str] = None,
+    password: Optional[str] = None,
+    timeout=30,
+):
+    if username is None:
+        username = get_password("username", "nexo")
+    if password is None:
+        password = get_password(username, "nexo")
+
     chrome_options = Options()
 
     with webdriver.Chrome(options=chrome_options) as driver:
@@ -90,4 +99,4 @@ def get_nexo_balances(
 
 
 if __name__ == "__main__":
-    scrape_nexo_csv("bas@nijho.lt")
+    scrape_nexo_csv()
