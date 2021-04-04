@@ -44,7 +44,7 @@ def read_config(path: Path = DEFAULT_CONFIG):
 
 def fname_from_date(folder, ext=".json") -> Path:
     dt_str = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-    fname = Path(folder) / f"{dt_str}.{ext}"
+    fname = Path(folder) / f"{dt_str}{ext}"
     fname.parent.mkdir(exist_ok=True)
     return fname
 

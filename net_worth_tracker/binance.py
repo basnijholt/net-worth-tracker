@@ -2,6 +2,7 @@ from collections import defaultdict
 from functools import lru_cache
 
 from binance.client import Client
+from binance.exceptions import BinanceAPIException
 
 from .utils import read_config
 
@@ -31,12 +32,16 @@ def get_binance_balances():
 
     # Add Liquidity pool shares
     uri = "https://api.binance.com/sapi/v1/bswap/liquidity"
-    pools = client._request("get", uri, True, data=dict())
-    assets = [p["share"]["asset"] for p in pools]
-    for d in assets:
-        for coin, amount in d.items():
-            amount = float(amount)
-            if amount > 0:
-                balances[coin] += amount
+    try:
+        pools = client._request("get", uri, True, data=dict())
+    except BinanceAPIException:  # not sure why it happens...
+        pass
+    else:
+        assets = [p["share"]["asset"] for p in pools]
+        for d in assets:
+            for coin, amount in d.items():
+                amount = float(amount)
+                if amount > 0:
+                    balances[coin] += amount
 
     return dict(balances)
