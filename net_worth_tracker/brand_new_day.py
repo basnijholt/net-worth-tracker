@@ -1,3 +1,4 @@
+from functools import lru_cache
 from typing import Optional
 
 from selenium import webdriver
@@ -12,6 +13,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from .utils import get_password
 
 
+@lru_cache
 def scrape_brand_new_day(
     username: Optional[str] = None,
     password: Optional[str] = None,
