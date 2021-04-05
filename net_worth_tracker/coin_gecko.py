@@ -60,6 +60,7 @@ def add_value_and_price(balances, ignore=("degiro", "brand_new_day")):
         for coin, bal in bals.items():
             if "value" not in bal and where not in ignore:
                 to_fetch.add(renames.get(coin, coin))
+
     to_fetch.discard("EUR")
     prices = get_prices(to_fetch)
     prices = {renames_reverse.get(coin, coin): price for coin, price in prices.items()}
@@ -76,5 +77,6 @@ def add_value_and_price(balances, ignore=("degiro", "brand_new_day")):
                     price = euro_per_dollar()
                 else:
                     print(f"Fuck, no data for {coin}")
+                    continue
                 bal["price"] = price
                 bal["value"] = bal["amount"] * price
