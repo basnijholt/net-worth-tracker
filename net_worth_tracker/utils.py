@@ -81,24 +81,29 @@ def load_data(folder=Path("data")):
 
 
 def data_to_df(date, data):
-    lst = [
-        {
-            "date": date,
-            "symbol": coin,
-            "amount": data["balances"][coin],
-            "value": data["eur_balances"].get(coin),
-        }
-        for coin in data["balances"]
-    ]
-    for d in lst:
-        if d["value"] is not None:
-            d["price"] = d["value"] / d["amount"]
-        for where, info in data["balances_per_category"].items():
-            d["ratio_in_" + where] = info.get(d["symbol"], 0) / d["amount"]
+    coin_mapping = defaultdict(list)
+    for where, bals in data["balances"].items():
+        for coin, info in bals.items():
+            coin_mapping[coin].append(dict(info, where=where))
+    coin_mapping = dict(coin_mapping)
 
-    df = pd.DataFrame(lst)
+    infos = []
+    for coin, lst in coin_mapping.items():
+        info = {"symbol": coin, "date": date, "amount": sum(d["amount"] for d in lst)}
+        try:
+            info["value"] = sum(d["value"] for d in lst)
+        except KeyError:  # not all entries have "value" key
+            pass
+        else:
+            info["price"] = info["value"] / info["amount"]
+            ratios = {f"ratio_in_{d['where']}": d["value"] / info["value"] for d in lst}
+            info.update(ratios)
+        infos.append(info)
+
+    df = pd.DataFrame(infos)
     for col in df.columns:
         if col.startswith("ratio_in"):
+            df[col].fillna(0, inplace=True)
             df[col.replace("ratio_in", "value_in")] = df[col] * df["value"]
     return df
 
@@ -118,7 +123,10 @@ def get_df(key, datas):
 
 def get_df_wallet(wallet, datas):
     df = pd.DataFrame(
-        [data["balances_per_category"][wallet] for data in datas.values()],
+        [
+            {k: v["amount"] for k, v in data["balances"][wallet].items()}
+            for data in datas.values()
+        ],
         [date for date in datas.keys()],
     ).sort_index()
     order = df.iloc[-1].sort_values(ascending=False).index
