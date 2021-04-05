@@ -13,6 +13,7 @@ from net_worth_tracker.utils import read_config
 
 IGNORE_TOKENS = {"ONX"}
 
+# Pool/vault -> coin name
 LP_MAPPING = {
     "BELT-BNB BELT LP": "BELT-BNB-LP",
     "Belt Venus BLP": "Belt-Venus-BLP",

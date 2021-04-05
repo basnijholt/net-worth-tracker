@@ -21,11 +21,9 @@ def get_binance_balances():
         return coin if not coin.startswith("LD") else coin[2:]
 
     # Get wallet and savings
-    latest_info = max(
-        client.get_account_snapshot(type="SPOT")["snapshotVos"],
-        key=lambda x: x["updateTime"],
-    )["data"]
-    for d in latest_info["balances"]:
+    snapshot = client.get_account_snapshot(type="SPOT")["snapshotVos"]
+    latest_snapshot = max(snapshot, key=lambda x: x["updateTime"])["data"]
+    for d in latest_snapshot["balances"]:
         amount = float(d["free"]) + float(d["locked"])
         if amount > 0:
             balances[normalize(d["asset"])] += amount

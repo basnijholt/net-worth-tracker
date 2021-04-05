@@ -181,7 +181,10 @@ def get_latest_prices(tickers):
 def get_degiro_balances(folder=FOLDER):
     data = load_latest_data(folder)
     prices = get_latest_prices(data)
-    return {t: info["size"] * prices[t] for t, info in data.items()}
+    return (
+        {t: info["size"] * prices[t] for t, info in data.items()},
+        {t: info["size"] for t, info in data.items()},
+    )
 
 
 def update_data(username="basnijholt", with_2fa=True):
