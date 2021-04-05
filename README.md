@@ -4,7 +4,7 @@
 Can extract crypto portfolio data from:
 - Nexo.io
 - BlockFi
-- Binance Smart Chain (BEP20 tokens + DeFi via [YieldWatch.net](YieldWatch.net))
+- Binance Smart Chain (BEP20 tokens + DeFi via [YieldWatch.net](https://www.yieldwatch.net/))
 - Binance.com
 - Exodus wallet
 - Celsius
