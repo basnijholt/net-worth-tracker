@@ -154,4 +154,5 @@ def update_eur_balances(eur_balances, yieldwatch, balances_bsc):
     for coin in missing:
         norm_coin = LP_MAPPING_REVERSE.get(coin, coin)
         if norm_coin in vaults:
+            print(f"Found €-value of {coin} in yieldwatch data")
             eur_balances[coin] = vaults[norm_coin]["dollar_value"]
