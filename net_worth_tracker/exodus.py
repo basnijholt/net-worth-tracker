@@ -17,4 +17,4 @@ def get_exodus(csv_fname: str = "~/Desktop/exodus-exports/"):
         if isinstance(row.OUTCURRENCY, str) or not math.isnan(row.OUTCURRENCY):
             balances[row.OUTCURRENCY] += row.OUTAMOUNT + row.FEEAMOUNT
 
-    return {k: v for k, v in balances.items() if v > 0}
+    return {k: dict(amount=v) for k, v in balances.items() if v > 0}

@@ -95,7 +95,7 @@ def get_nexo_balances(
     nexo = df[df.Type == "Interest"].groupby("Currency").sum("Amount")
     assert len(nexo) == 1
     balances["NEXO"] = balances.get("NEXO", 0) + nexo.iloc[0].Amount
-    return balances
+    return {k: dict(amount=v) for k, v in balances.items()}
 
 
 if __name__ == "__main__":

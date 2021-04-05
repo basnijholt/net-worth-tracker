@@ -2,6 +2,8 @@ from collections import defaultdict
 
 from pycoingecko import CoinGeckoAPI
 
+from net_worth_tracker.utils import euro_per_dollar
+
 
 def get_coins(balances, cg: CoinGeckoAPI):
     sym2name = {  # mapping for duplicates
@@ -12,7 +14,7 @@ def get_coins(balances, cg: CoinGeckoAPI):
         "onx": "OnX Finance",
         "bunny": "Pancake Bunny",
     }
-    symbols = [c.lower() for c in balances.keys()]
+    symbols = [c.lower() for c in balances]
 
     coin_list = cg.get_coins_list()
 
@@ -49,28 +51,30 @@ def get_prices(balances):
     return prices
 
 
-def get_balances_in_euro(balances):
-    balances = balances.copy()
+def add_value_and_price(balances, ignore=("degiro", "brand_new_day")):
     renames = {"IOTA": "MIOTA"}
-    for old, new in renames.items():
-        if old in balances:
-            balances[new] = balances.pop(old)
+    renames_reverse = {v: k for k, v in renames.items()}
 
-    prices = get_prices(balances)
-    eur_balances = {}
-    for coin, amount in balances.items():
-        if coin in prices:
-            eur_balances[coin] = prices[coin] * amount
-        elif coin == "EUR":
-            eur_balances[coin] = amount
-        elif coin == "Belt-Venus-BLP":
-            # Mixture of USD stable coins, so assume BUSD
-            eur_balances[coin] = prices["BUSD"] * amount
-        else:
-            print(f"Fuck, no data for {coin}")
+    to_fetch = set()
+    for where, bals in balances.items():
+        for coin, bal in bals.items():
+            if "value" not in bal and where not in ignore:
+                to_fetch.add(renames.get(coin, coin))
 
-    # Rename back
-    for old, new in renames.items():
-        if new in eur_balances:
-            eur_balances[old] = eur_balances.pop(new)
-    return dict(sorted(eur_balances.items(), key=lambda x: x[1], reverse=True))
+    prices = get_prices(to_fetch)
+    prices = {renames_reverse.get(coin, coin): price for coin, price in prices.items()}
+
+    for where, bals in balances.items():
+        for coin, bal in bals.items():
+            if "value" not in bal and where not in ignore:
+                if coin == "EUR":
+                    price = 1
+                elif coin in prices:
+                    price = prices[coin]
+                elif coin == "Belt-Venus-BLP":
+                    # Mixture of USD stable coins, so assume BUSD
+                    price = euro_per_dollar()
+                else:
+                    print(f"Fuck, no data for {coin}")
+                bal["price"] = price
+                bal["value"] = bal["amount"] * price

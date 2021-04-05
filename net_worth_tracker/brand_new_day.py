@@ -92,16 +92,15 @@ def get_balances(scraped_data):
         x.replace("€", "").replace(".", "").replace(",", ".").strip()
     )
     balances = {
-        d["Fondsnaam"]: to_float(d["Aantal"])
+        d["Fondsnaam"]: dict(
+            amount=to_float(d["Aantal"]),
+            value=to_float(d["Waarde"]),
+            price=to_float(d["Koers"]),
+        )
         for d in scraped_data
         if d["Aantal"] != "" and ("%" not in d["Aantal"])
     }
-    balances_eur = {
-        d["Fondsnaam"]: to_float(d["Waarde"])
-        for d in scraped_data
-        if d["Aantal"] != "" and ("%" not in d["Aantal"])
-    }
-    return balances, balances_eur
+    return balances
 
 
 if __name__ == "__main__":

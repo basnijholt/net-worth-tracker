@@ -42,4 +42,4 @@ def get_binance_balances():
                 if amount > 0:
                     balances[coin] += amount
 
-    return dict(balances)
+    return {k: dict(amount=v) for k, v in balances.items()}

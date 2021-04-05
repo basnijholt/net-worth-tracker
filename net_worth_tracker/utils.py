@@ -2,10 +2,12 @@ import datetime
 import json
 from collections import defaultdict
 from configparser import ConfigParser
+from functools import lru_cache
 from pathlib import Path
 
 import keyring
 import pandas as pd
+from currency_converter import CurrencyConverter
 
 DEFAULT_CONFIG = Path("~/.config/crypto_etf.conf").expanduser()
 
@@ -58,38 +60,11 @@ def combine_balances(*balances_dicts):
 
 
 def save_data(
-    balances_binance,
-    balances_blockfi,
-    balances_exodus,
-    balances_nexo,
-    balances_trust,
-    balances_bsc,
-    eur_balances,
+    balances,
     bsc,
     folder=Path("data"),
 ):
-    balances_per_category = dict(
-        binance=balances_binance,
-        blockfi=balances_blockfi,
-        exodus=balances_exodus,
-        nexo=balances_nexo,
-        trust=balances_trust,
-        bsc=balances_bsc,
-    )
-    data = dict(
-        balances_per_category=dict(
-            binance=balances_binance,
-            blockfi=balances_blockfi,
-            exodus=balances_exodus,
-            nexo=balances_nexo,
-            trust=balances_trust,
-            bsc=balances_bsc,
-        ),
-        balances=combine_balances(*balances_per_category.values()),
-        eur_balances=eur_balances,
-        defi=dict(bsc=bsc),
-    )
-
+    data = dict(balances=balances, defi=dict(bsc=bsc))
     fname = fname_from_date(folder)
     with fname.open("w") as f:
         json.dump(data, f, indent="  ")
@@ -216,3 +191,9 @@ def styled_overview_df(df):
         .bar(subset=["ATL change (%)"], color=["lightgreen"], align="left")
         .bar(subset=["ATH change (%)"], color=["red"], align="zero")
     )
+
+
+@lru_cache
+def euro_per_dollar():
+    c = CurrencyConverter()
+    return c.convert(1, "USD", "EUR")

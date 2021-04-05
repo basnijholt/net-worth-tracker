@@ -8,3 +8,4 @@ https://github.com/sammchardy/python-binance/archive/refs/heads/master.zip  # be
 jupyter
 keyring
 yfinance
+currencyconverter

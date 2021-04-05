@@ -9,7 +9,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.expected_conditions import presence_of_element_located
 from selenium.webdriver.support.ui import WebDriverWait
 
-from net_worth_tracker.utils import read_config
+from net_worth_tracker.utils import euro_per_dollar, read_config
 
 IGNORE_TOKENS = {"ONX"}
 
@@ -59,7 +59,7 @@ def get_bep20_balances(my_address: Optional[str] = None, api_key: Optional[str] 
         if old in balances:
             balances[new] = balances.pop(old)
 
-    return balances
+    return {k: dict(amount=v) for k, v in balances.items()}
 
 
 @lru_cache
@@ -131,7 +131,7 @@ def scrape_yieldwatch(
 
 def yieldwatch_to_balances(yieldwatch):
     coin_renames = {"Cake": "CAKE", "sBDO": "SBDO"}
-    balances = defaultdict(float)
+    balances = defaultdict(lambda: defaultdict(float))
     for defi, vaults in yieldwatch.items():
         for vault, info in vaults.items():
             for (type_, amount_coin_list) in info.items():
@@ -140,11 +140,22 @@ def yieldwatch_to_balances(yieldwatch):
                     # if Harvest, and dollar_value is used else where.
                     continue
 
+                if vault in LP_MAPPING:
+                    assert len(amount_coin_list) == 1
+                    norm_coin = LP_MAPPING[vault]
+                    balances[norm_coin]["value"] = (
+                        info["dollar_value"] * euro_per_dollar()
+                    )
+
                 for amount, coin in amount_coin_list:
                     norm_coin = LP_MAPPING.get(vault, coin)
                     norm_coin = coin_renames.get(norm_coin, norm_coin)
-                    balances[norm_coin] += float(amount)
-    return dict(balances)
+                    balances[norm_coin]["amount"] += float(amount)
+    balances = {k: dict(v) for k, v in balances.items()}
+    for coin, info in balances.items():
+        if "value" in info:
+            info["price"] = info["value"] / info["amount"]
+    return {k: dict(v) for k, v in balances.items()}
 
 
 def update_eur_balances(eur_balances, yieldwatch, balances_bsc):
