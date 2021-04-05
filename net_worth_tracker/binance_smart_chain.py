@@ -13,6 +13,13 @@ from net_worth_tracker.utils import read_config
 
 IGNORE_TOKENS = {"ONX"}
 
+LP_MAPPING = {
+    "BELT-BNB BELT LP": "BELT-BNB-LP",
+    "Belt Venus BLP": "Belt-Venus-BLP",
+    "AUTO-WBNB Pool": "AUTO-WBNB-LP",
+}
+LP_MAPPING_REVERSE = {v: k for k, v in LP_MAPPING.items()}
+
 
 @lru_cache
 def get_bep20_balances(my_address: Optional[str] = None, api_key: Optional[str] = None):
@@ -122,11 +129,6 @@ def scrape_yieldwatch(
 
 
 def yieldwatch_to_balances(yieldwatch):
-    vault_coin_mapping = {
-        "BELT-BNB BELT LP": "BELT-BNB-LP",
-        "Belt Venus BLP": "Belt-Venus-BLP",
-        "AUTO-WBNB Pool": "AUTO-WBNB-LP",
-    }
     coin_renames = {"Cake": "CAKE", "sBDO": "SBDO"}
     balances = defaultdict(float)
     for defi, vaults in yieldwatch.items():
@@ -134,11 +136,22 @@ def yieldwatch_to_balances(yieldwatch):
             for (type_, amount_coin_list) in info.items():
                 if type_ in ("Harvest", "dollar_value"):
                     # is already taken into account in wallet balance
-                    # if Harvest, and dollar_value is used elsewhere.
+                    # if Harvest, and dollar_value is used else where.
                     continue
 
                 for amount, coin in amount_coin_list:
-                    norm_coin = vault_coin_mapping.get(vault, coin)
+                    norm_coin = LP_MAPPING.get(vault, coin)
                     norm_coin = coin_renames.get(norm_coin, norm_coin)
                     balances[norm_coin] += float(amount)
     return dict(balances)
+
+
+def update_eur_balances(eur_balances, yieldwatch, balances_bsc):
+    vaults = {}
+    for d in yieldwatch.values():
+        vaults.update(d)
+    missing = balances_bsc.keys() - eur_balances.keys()
+    for coin in missing:
+        norm_coin = LP_MAPPING_REVERSE.get(coin, coin)
+        if norm_coin in vaults:
+            eur_balances[coin] = vaults[norm_coin]["dollar_value"]
