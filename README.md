@@ -30,6 +30,6 @@ pip install -r requirements.txt
 ```
 and
 ```
-sudo apt install chromium-chromedriver  # Ununtu
+sudo apt install chromium-chromedriver keychain # Ununtu
 brew cask install chromedriver  # MacOS
 ```
