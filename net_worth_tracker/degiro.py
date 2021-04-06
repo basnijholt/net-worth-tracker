@@ -3,6 +3,7 @@ import json
 from collections import defaultdict
 from functools import cached_property, lru_cache
 from pathlib import Path
+from typing import Optional
 
 import requests
 import yfinance as yf
@@ -19,9 +20,15 @@ class DeGiro:
 
     def login(
         self,
-        username: str,
+        username: Optional[str] = None,
+        password: Optional[str] = None,
         with_2fa: bool = False,
     ):
+
+        if username is None:
+            username = get_password("username", "degiro")
+        if password is None:
+            password = get_password(username, "degiro")
 
         self.session = requests.Session()
 
@@ -29,14 +36,14 @@ class DeGiro:
         url = "https://trader.degiro.nl/login/secure/login"
         payload = {
             "username": username,
-            "password": get_password(username, "degiro"),
+            "password": password,
             "isPassCodeReset": False,
             "isRedirectToMobile": False,
         }
         header = {"content-type": "application/json"}
 
         if with_2fa:
-            payload["oneTimePassword"] = getpass.getpass("2FA Token: ")
+            payload["oneTimePassword"] = getpass.getpass("DEGIRO 2FA Token: ")
             url += "/totp"
 
         r = self.session.post(url, headers=header, data=json.dumps(payload))
@@ -187,8 +194,10 @@ def get_degiro_balances(folder=FOLDER):
     }
 
 
-def update_data(username="basnijholt", with_2fa=True):
-    dg = DeGiro().login(username, with_2fa=with_2fa)
+def update_data(
+    username: Optional[str] = None, password: Optional[str] = None, with_2fa=True
+):
+    dg = DeGiro().login(username, password, with_2fa=with_2fa)
     holdings = dg.get_holdings()
     print(holdings)
     with fname_from_date(FOLDER).open("w") as f:
@@ -196,4 +205,4 @@ def update_data(username="basnijholt", with_2fa=True):
 
 
 if __name__ == "__main__":
-    update_data("basnijholt")
+    update_data()

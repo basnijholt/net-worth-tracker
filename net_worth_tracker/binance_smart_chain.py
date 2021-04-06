@@ -122,7 +122,12 @@ def scrape_yieldwatch(
                     for i, amount in enumerate(amounts):
                         amount, coin = amount.split(" ", 1)
                         name = names[min(i, len(names) - 1)]
-                        d[name].append((float(amount), coin))
+                        amount = (
+                            float(amount[:-1]) * 1000
+                            if "k" in amount
+                            else float(amount)
+                        )
+                        d[name].append((amount, coin))
                     d = dict(d)
                     d["dollar_value"] = dollar_value
                     infos[which][box_name] = dict(d)
