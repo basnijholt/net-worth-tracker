@@ -1,3 +1,4 @@
+import time
 from collections import defaultdict
 from functools import lru_cache
 from typing import Optional
@@ -168,7 +169,7 @@ def scraped_yieldwatch_to_balances(yieldwatch):
 
 
 @lru_cache
-def get_yieldwatch_balances(
+def get_yieldwatch_balances(  # noqa: C901
     my_address: Optional[str] = None, return_raw_data: bool = False
 ):
     config = read_config()
@@ -190,11 +191,15 @@ def get_yieldwatch_balances(
     }
     platforms_str = ",".join(platforms.values())
     url = f"https://www.yieldwatch.net/api/all/{my_address}?platforms={platforms_str}"
-
-    req = requests.get(url)
-
-    response = req.json()
-    raw_data = response["result"]
+    for i in range(3):
+        req = requests.get(url)
+        response = req.json()
+        if "result" in response:
+            raw_data = response["result"]
+            break
+        elif i == 2:
+            raise RuntimeError("Tried trice and failed getting YieldWatch")
+        time.sleep(2)
 
     balances = defaultdict(lambda: defaultdict(float))
     for k, v in raw_data.items():
@@ -237,7 +242,8 @@ def get_yieldwatch_balances(
                         )
     balances = {
         RENAMES.get(k, k): dict(v, value=v["amount"] * v["price"])
-        for k, v in balances.items() if v["amount"] > 0
+        for k, v in balances.items()
+        if v["amount"] > 0
     }
     if return_raw_data:
         return balances, raw_data
