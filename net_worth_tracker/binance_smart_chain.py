@@ -2,6 +2,7 @@ from collections import defaultdict
 from functools import lru_cache
 from typing import Optional
 
+import requests
 from bscscan import BscScan
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -134,7 +135,7 @@ def scrape_yieldwatch(
     return dict(infos)
 
 
-def yieldwatch_to_balances(yieldwatch):
+def scraped_yieldwatch_to_balances(yieldwatch):
     coin_renames = {"Cake": "CAKE", "sBDO": "SBDO"}
     balances = defaultdict(lambda: defaultdict(float))
     for defi, vaults in yieldwatch.items():
@@ -161,6 +162,80 @@ def yieldwatch_to_balances(yieldwatch):
         if "value" in info:
             info["price"] = info["value"] / info["amount"]
     return {k: dict(v) for k, v in balances.items()}
+
+
+@lru_cache
+def get_yieldwatch_balances(
+    my_address: Optional[str] = None, return_raw_data: bool = False
+):
+    config = read_config()
+    if my_address is None:
+        my_address = config["bsc"]["address"]
+    platforms = {
+        "BeefyFinance": "beefy",
+        "PancakeSwap": "pancake",
+        "HyperJump": "hyperjump",
+        "Blizzard": "blizzard",
+        "bDollar": "bdollar",
+        "Jetfuel": "jetfuel",
+        "Autofarm": "auto",
+        "bunny": "bunny",
+        "Acryptos": "acryptos",
+        "Venus": "venus",
+        "CreamFinance": "cream",
+        "Alpha": "alpha",
+    }
+    platforms_str = ",".join(platforms.values())
+    url = f"https://www.yieldwatch.net/api/all/{my_address}?platforms={platforms_str}"
+
+    req = requests.get(url)
+
+    response = req.json()
+    raw_data = response["result"]
+
+    balances = defaultdict(lambda: defaultdict(float))
+    for k, v in raw_data.items():
+        if k in ("watchBalance", "currencies", "walletBalance"):
+            continue
+        if k not in platforms:
+            print(f"the '{k}' platform was not requested in the yieldwatch url!")
+        if "vaults" in v:
+            for vault in v["vaults"]["vaults"]:
+                if (deposit_token := vault.get("depositToken")) is not None:
+                    balances[deposit_token]["amount"] += vault["currentTokens"]
+                    balances[deposit_token]["price"] = (
+                        vault["priceInUSDDepositToken"] * euro_per_dollar()
+                    )
+                if (reward_token := vault.get("rewardToken")) is not None:
+                    balances[reward_token]["amount"] += vault["pendingRewards"]
+                    balances[reward_token]["price"] = (
+                        vault["priceInUSDRewardToken"] * euro_per_dollar()
+                    )
+        if "LPVaults" in v:
+            for vault in v["LPVaults"]["vaults"]:
+                if (deposit_token := vault.get("depositToken")) is not None:
+                    balances[deposit_token]["amount"] += vault["currentTokens"]
+                    balances[deposit_token]["price"] = (
+                        vault["priceInUSDDepositToken"] * euro_per_dollar()
+                    )
+        if "staking" in v:
+            for vault in v["staking"]["vaults"]:
+                if (deposit_token := vault.get("depositToken")) is not None:
+                    balances[deposit_token]["amount"] += float(vault["depositedTokens"])
+                    balances[deposit_token]["price"] = vault["priceInUSDDepositToken"]
+                for ext in ["", "1", "2", "3"]:
+                    if (reward_token := vault.get(f"rewardToken{ext}")) is not None:
+                        balances[reward_token]["amount"] += float(
+                            vault[f"pendingRewards{ext}"]
+                        )
+                        balances[reward_token]["price"] = (
+                            float(vault[f"priceInUSDRewardToken{ext}"])
+                            * euro_per_dollar()
+                        )
+    balances = {k: dict(v, value=v["amount"] * v["price"]) for k, v in balances.items()}
+    if return_raw_data:
+        return balances, raw_data
+    return balances
 
 
 def update_eur_balances(eur_balances, yieldwatch, balances_bsc):
