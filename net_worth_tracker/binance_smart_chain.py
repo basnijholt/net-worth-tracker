@@ -21,6 +21,10 @@ LP_MAPPING = {
     "AUTO-WBNB Pool": "AUTO-WBNB-LP",
 }
 LP_MAPPING_REVERSE = {v: k for k, v in LP_MAPPING.items()}
+RENAMES = {
+    "Cake": "CAKE",
+    "sBDO": "SBDO",
+}
 
 
 @lru_cache
@@ -136,7 +140,6 @@ def scrape_yieldwatch(
 
 
 def scraped_yieldwatch_to_balances(yieldwatch):
-    coin_renames = {"Cake": "CAKE", "sBDO": "SBDO"}
     balances = defaultdict(lambda: defaultdict(float))
     for defi, vaults in yieldwatch.items():
         for vault, info in vaults.items():
@@ -155,7 +158,7 @@ def scraped_yieldwatch_to_balances(yieldwatch):
 
                 for amount, coin in amount_coin_list:
                     norm_coin = LP_MAPPING.get(vault, coin)
-                    norm_coin = coin_renames.get(norm_coin, norm_coin)
+                    norm_coin = RENAMES.get(norm_coin, norm_coin)
                     balances[norm_coin]["amount"] += float(amount)
     balances = {k: dict(v) for k, v in balances.items()}
     for coin, info in balances.items():
@@ -221,7 +224,7 @@ def get_yieldwatch_balances(
         if "staking" in v:
             for vault in v["staking"]["vaults"]:
                 if (deposit_token := vault.get("depositToken")) is not None:
-                    balances[deposit_token]["amount"] += float(vault["currentTokens"])
+                    balances[deposit_token]["amount"] += float(vault["depositedTokens"])
                     balances[deposit_token]["price"] = vault["priceInUSDDepositToken"]
                 for ext in ["", "1", "2", "3"]:
                     if (reward_token := vault.get(f"rewardToken{ext}")) is not None:
@@ -232,7 +235,10 @@ def get_yieldwatch_balances(
                             float(vault[f"priceInUSDRewardToken{ext}"])
                             * euro_per_dollar()
                         )
-    balances = {k: dict(v, value=v["amount"] * v["price"]) for k, v in balances.items()}
+    balances = {
+        RENAMES.get(k, k): dict(v, value=v["amount"] * v["price"])
+        for k, v in balances.items()
+    }
     if return_raw_data:
         return balances, raw_data
     return balances
