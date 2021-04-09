@@ -221,7 +221,7 @@ def get_yieldwatch_balances(
         if "staking" in v:
             for vault in v["staking"]["vaults"]:
                 if (deposit_token := vault.get("depositToken")) is not None:
-                    balances[deposit_token]["amount"] += float(vault["depositedTokens"])
+                    balances[deposit_token]["amount"] += float(vault["currentTokens"])
                     balances[deposit_token]["price"] = vault["priceInUSDDepositToken"]
                 for ext in ["", "1", "2", "3"]:
                     if (reward_token := vault.get(f"rewardToken{ext}")) is not None:
