@@ -237,7 +237,7 @@ def get_yieldwatch_balances(
                         )
     balances = {
         RENAMES.get(k, k): dict(v, value=v["amount"] * v["price"])
-        for k, v in balances.items()
+        for k, v in balances.items() if v["amount"] > 0
     }
     if return_raw_data:
         return balances, raw_data
