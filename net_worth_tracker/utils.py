@@ -198,7 +198,7 @@ def styled_overview_df(df):
     return (
         overview.style.applymap(color_negative_red, subset=pd.IndexSlice[:, pct_cols])
         .format(format, na_rep="-")
-        .bar(subset=["ATL change (%)"], color=["lightgreen"], align="left")
+        .bar(subset=["ATL change (%)"], color=["lightgreen"], align="left", vmax=100)
         .bar(subset=["ATH change (%)"], color=["red"], align="zero")
     )
 
