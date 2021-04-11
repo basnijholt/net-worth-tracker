@@ -14,6 +14,7 @@ def get_coins(balances, cg: CoinGeckoAPI):
         "onx": "OnX Finance",
         "bunny": "Pancake Bunny",
         "rune": "THORChain",
+        "btcb": "Binance Bitcoin",
     }
     symbols = [c.lower() for c in balances]
 
