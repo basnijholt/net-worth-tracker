@@ -5,6 +5,7 @@ from collections import defaultdict
 from configparser import ConfigParser
 from functools import lru_cache
 from pathlib import Path
+import getpass
 
 import keyring
 import pandas as pd
@@ -27,20 +28,32 @@ def base64_decode(x: str):
     return message_bytes.decode("ascii")
 
 
-def get_password(username: str, service: str):
+def get_password(key: str, service: str):
     config = read_config()
-    if (cryptfile_pw := config.get("cryptfile")) is not None:
+    if (cryptfile_pw := config.get("cryptfile", "password")) is not None:
         # See https://github.com/frispete/keyrings.cryptfile#example-session
         # on how to set pws.
         kr = CryptFileKeyring()
         kr.keyring_key = base64_decode(cryptfile_pw)
-        pw = kr.get_password(service, username)
+        pw = kr.get_password(service, key)
+        if not pw:
+            code = f"import net_worth_tracker as nwt; nwt.utils.set_password('{service}', '{key}')"
+            raise Exception(f'Use:\npython -c "{code}"')
     else:
-        pw = keyring.get_password(service, username)
+        pw = keyring.get_password(service, key)
+        if not pw:
+            raise Exception(f"python -m keyring set {service} {key}")
 
-    if not pw:
-        raise Exception(f"python -m keyring set {service} {username}")
     return pw
+
+
+def set_password(service, key, cryptfile_pw=None):
+    kr = CryptFileKeyring()
+    if cryptfile_pw is None:
+        config = read_config()
+        cryptfile_pw = config["cryptfile"]['password']
+        kr.keyring_key = base64_decode(cryptfile_pw)
+    kr.set_password(service, key, getpass.getpass("Secret: "))
 
 
 def read_config(path: Path = DEFAULT_CONFIG):
@@ -55,6 +68,9 @@ def read_config(path: Path = DEFAULT_CONFIG):
 
         [bscscan]
         api_key = ...
+
+        [cryptfile]
+        password = ...
 
     Uses https://docs.python.org/3/library/configparser.html
     """

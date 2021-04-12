@@ -155,8 +155,8 @@ class DeGiro:
                 k: v[k] for k in ["size", "price", "value", "name"]
             }
         cash = portfolio["CASH"]
-        eur_value = cash.get("EUR", {}).get("value") + cash.get("FLATEX_EUR", {}).get(
-            "value"
+        eur_value = cash.get("EUR", {}).get("value", 0) + cash.get("FLATEX_EUR", {}).get(
+            "value", 0
         )
         holdings["EUR"] = dict(size=eur_value, value=eur_value, pirce=1, name="Euro")
         return holdings
