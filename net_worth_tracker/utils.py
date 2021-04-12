@@ -128,6 +128,8 @@ def data_to_df(date, data, ignore=(), renames=RENAMES):
         if where in ignore:
             continue
         for coin, info in bals.items():
+            if coin.startswith("moo"):  # ignore Beefy.Finance tokens
+                continue
             coin = renames.get(coin, coin)
             coin_mapping[coin].append(dict(info, where=where))
     coin_mapping = dict(coin_mapping)

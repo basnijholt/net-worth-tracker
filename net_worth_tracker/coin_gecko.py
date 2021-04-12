@@ -2,8 +2,6 @@ from collections import defaultdict
 
 from pycoingecko import CoinGeckoAPI
 
-from net_worth_tracker.utils import euro_per_dollar
-
 
 def get_coins(balances, cg: CoinGeckoAPI):
     sym2name = {  # mapping for duplicates
@@ -74,9 +72,8 @@ def add_value_and_price(balances, ignore=("degiro", "brand_new_day")):
                     price = 1
                 elif coin in prices:
                     price = prices[coin]
-                elif coin == "Belt-Venus-BLP":
-                    # Mixture of USD stable coins, so assume BUSD
-                    price = euro_per_dollar()
+                elif coin.startswith("moo"):
+                    continue  # are taking into consideration in YieldWatch
                 else:
                     print(f"Fuck, no data for {coin}")
                     continue
