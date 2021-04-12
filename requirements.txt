@@ -9,3 +9,4 @@ jupyter
 keyring
 yfinance
 currencyconverter
+keyrings.cryptfile

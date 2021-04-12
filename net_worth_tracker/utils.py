@@ -1,20 +1,43 @@
+import base64
 import datetime
 import json
 from collections import defaultdict
 from configparser import ConfigParser
 from functools import lru_cache
+from os import getenv
 from pathlib import Path
 
 import keyring
 import pandas as pd
 from currency_converter import CurrencyConverter
+from keyrings.cryptfile.cryptfile import CryptFileKeyring
 
 DEFAULT_CONFIG = Path("~/.config/crypto_etf.conf").expanduser()
 RENAMES = {"BTCB": "BTC", "WBNB": "BNB"}
 
 
+def base64_encode(x: str):
+    message_bytes = x.encode("ascii")
+    base64_bytes = base64.b64encode(message_bytes)
+    return base64_bytes.decode("ascii")
+
+
+def base64_decode(x: str):
+    base64_bytes = x.encode("ascii")
+    message_bytes = base64.b64decode(base64_bytes)
+    return message_bytes.decode("ascii")
+
+
 def get_password(username: str, service: str):
-    pw = keyring.get_password(service, username)
+    if (cryptfile_pw := getenv("KEYRING_CRYPTFILE_PASSWORD")) is not None:
+        # See https://github.com/frispete/keyrings.cryptfile#example-session
+        # on how to set pws.
+        kr = CryptFileKeyring()
+        kr.keyring_key = base64_decode(cryptfile_pw)
+        pw = kr.get_password(service, username)
+    else:
+        pw = keyring.get_password(service, username)
+
     if not pw:
         raise Exception(f"python -m keyring set {service} {username}")
     return pw

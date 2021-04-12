@@ -8,6 +8,7 @@ from net_worth_tracker import (
     degiro,
     exodus,
     nexo,
+    plots,
     utils,
 )
 
@@ -21,5 +22,6 @@ __all__ = [
     "degiro",
     "exodus",
     "nexo",
+    "plots",
     "utils",
 ]
