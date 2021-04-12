@@ -4,7 +4,6 @@ import json
 from collections import defaultdict
 from configparser import ConfigParser
 from functools import lru_cache
-from os import getenv
 from pathlib import Path
 
 import keyring
@@ -29,7 +28,8 @@ def base64_decode(x: str):
 
 
 def get_password(username: str, service: str):
-    if (cryptfile_pw := getenv("KEYRING_CRYPTFILE_PASSWORD")) is not None:
+    config = read_config()
+    if (cryptfile_pw := config.get("cryptfile")) is not None:
         # See https://github.com/frispete/keyrings.cryptfile#example-session
         # on how to set pws.
         kr = CryptFileKeyring()
