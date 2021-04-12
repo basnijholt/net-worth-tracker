@@ -1,11 +1,11 @@
 import base64
 import datetime
+import getpass
 import json
 from collections import defaultdict
 from configparser import ConfigParser
 from functools import lru_cache
 from pathlib import Path
-import getpass
 
 import keyring
 import pandas as pd
@@ -51,7 +51,7 @@ def set_password(service, key, cryptfile_pw=None):
     kr = CryptFileKeyring()
     if cryptfile_pw is None:
         config = read_config()
-        cryptfile_pw = config["cryptfile"]['password']
+        cryptfile_pw = config["cryptfile"]["password"]
         kr.keyring_key = base64_decode(cryptfile_pw)
     kr.set_password(service, key, getpass.getpass("Secret: "))
 
@@ -240,7 +240,7 @@ def styled_overview_df(df):
         overview.style.applymap(color_negative_red, subset=pd.IndexSlice[:, pct_cols])
         .format(format, na_rep="-")
         .bar(subset=["ATL change (%)"], color=["lightgreen"], align="left", vmax=100)
-        .bar(subset=["ATH change (%)"], color=["red"], align="zero")
+        .bar(subset=["ATH change (%)"], color=["lightcoral"], align="zero")
     )
 
 
