@@ -10,6 +10,7 @@ import pandas as pd
 from currency_converter import CurrencyConverter
 
 DEFAULT_CONFIG = Path("~/.config/crypto_etf.conf").expanduser()
+RENAMES = {"BTCB": "BTC", "WBNB": "BNB"}
 
 
 def get_password(username: str, service: str):
@@ -80,12 +81,13 @@ def load_data(folder=Path("data")):
     return datas
 
 
-def data_to_df(date, data, ignore=()):
+def data_to_df(date, data, ignore=(), renames=RENAMES):
     coin_mapping = defaultdict(list)
     for where, bals in data["balances"].items():
         if where in ignore:
             continue
         for coin, info in bals.items():
+            coin = renames.get(coin, coin)
             coin_mapping[coin].append(dict(info, where=where))
     coin_mapping = dict(coin_mapping)
 
@@ -110,8 +112,8 @@ def data_to_df(date, data, ignore=()):
     return df
 
 
-def datas_to_df(datas, ignore=()):
-    dfs = [data_to_df(date, data, ignore) for date, data in datas.items()]
+def datas_to_df(datas, ignore=(), renames=RENAMES):
+    dfs = [data_to_df(date, data, ignore, renames) for date, data in datas.items()]
     return pd.concat(dfs).sort_values("date")
 
 
