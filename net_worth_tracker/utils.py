@@ -250,3 +250,11 @@ def styled_overview_df(df):
 def euro_per_dollar():
     c = CurrencyConverter()
     return c.convert(1, "USD", "EUR")
+
+
+def unique_dt_per_day(df):
+    df = df.set_index("date", drop=False)
+    return [
+        df.loc[str(date).split("T")[0]].index[-1]
+        for date in df.date.dt.normalize().unique()
+    ]
