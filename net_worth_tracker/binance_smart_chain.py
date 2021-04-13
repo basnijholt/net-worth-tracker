@@ -240,6 +240,16 @@ def get_yieldwatch_balances(  # noqa: C901
                             float(vault[f"priceInUSDRewardToken{ext}"])
                             * euro_per_dollar()
                         )
+        if "barnOfTrust" in v:
+            for vault in v["barnOfTrust"]["vaults"]:
+                if (deposit_token := vault.get("depositToken")) is not None:
+                    balances[deposit_token]["amount"] += float(vault["depositedTokens"])
+                    balances[deposit_token]["price"] = vault["priceInUSDDepositToken"]
+                if (reward_token := vault.get("rewardToken")) is not None:
+                    balances[reward_token]["amount"] += float(vault["pendingRewards"])
+                    balances[reward_token]["price"] = (
+                        float(vault["priceInUSDRewardToken"]) * euro_per_dollar()
+                    )
     balances = {
         RENAMES.get(k, k): dict(v, value=v["amount"] * v["price"])
         for k, v in balances.items()
