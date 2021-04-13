@@ -1,4 +1,5 @@
 import base64
+import configparser
 import datetime
 import getpass
 import json
@@ -30,7 +31,12 @@ def base64_decode(x: str):
 
 def get_password(key: str, service: str):
     config = read_config()
-    if (cryptfile_pw := config.get("cryptfile", "password")) is not None:
+    try:
+        cryptfile_pw = config.get("cryptfile", "password")
+    except configparser.NoSectionError:
+        cryptfile_pw = None
+
+    if cryptfile_pw is not None:
         # See https://github.com/frispete/keyrings.cryptfile#example-session
         # on how to set pws.
         kr = CryptFileKeyring()
