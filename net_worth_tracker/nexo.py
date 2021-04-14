@@ -12,6 +12,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 from .utils import get_password
 
+RENAMES = {"NEXOBEP2": "NEXO"}
+
 
 def scrape_nexo_csv(
     username: Optional[str] = None,
@@ -88,8 +90,7 @@ def get_nexo_balances(
     df = pd.read_csv(csv_fname)
     summed = df[df.Type == "Deposit"].groupby("Currency").sum("Amount")
     balances = {i: row.Amount for i, row in summed.iterrows()}
-    renames = {"NEXOBEP2": "NEXO"}
-    for old, new in renames.items():
+    for old, new in RENAMES.items():
         if old in balances:
             balances[new] = balances.pop(old)
     nexo = df[df.Type == "Interest"].groupby("Currency").sum("Amount")
