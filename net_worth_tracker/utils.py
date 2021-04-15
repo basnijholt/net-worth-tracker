@@ -14,7 +14,7 @@ from currency_converter import CurrencyConverter
 from keyrings.cryptfile.cryptfile import CryptFileKeyring
 
 DEFAULT_CONFIG = Path("~/.config/crypto_etf.conf").expanduser()
-RENAMES = {"BTCB": "BTC", "WBNB": "BNB", "iBTC": "BTC"}
+RENAMES = {"BTCB": "BTC", "WBNB": "BNB", "iBTC": "BTC", "iETH": "ETH", "BETH": "ETH"}
 
 
 def base64_encode(x: str):
