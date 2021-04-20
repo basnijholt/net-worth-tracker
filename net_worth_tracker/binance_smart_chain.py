@@ -185,9 +185,10 @@ def get_yieldwatch_balances(  # noqa: C901
         "Autofarm": "auto",
         "bunny": "bunny",
         "Acryptos": "acryptos",
+        "MDex": "mdex",
+        "Alpha": "alpha",
         "Venus": "venus",
         "CreamFinance": "cream",
-        "Alpha": "alpha",
     }
     platforms_str = ",".join(platforms.values())
     url = f"https://www.yieldwatch.net/api/all/{my_address}?platforms={platforms_str}"
