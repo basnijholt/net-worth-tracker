@@ -158,7 +158,7 @@ class DeGiro:
         eur_value = cash.get("EUR", {}).get("value", 0) + cash.get("FLATEX_EUR", {}).get(
             "value", 0
         )
-        holdings["EUR"] = dict(size=eur_value, value=eur_value, pirce=1, name="Euro")
+        holdings["EUR"] = dict(size=eur_value, value=eur_value, price=1, name="Euro")
         return holdings
 
 
