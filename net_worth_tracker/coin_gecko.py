@@ -15,6 +15,11 @@ def get_coins(balances, cg: CoinGeckoAPI):
         "btcb": "Binance Bitcoin",
         "mash": "MarshmallowDeFi",
         "stx": "Stacks",
+        "dot": "Polkadot",
+        "ada": "Cardano",
+        "xrp": "XRP",
+        "tlm": "Alien Worlds",
+        "ltc": "Litecoin",
     }
     symbols = [c.lower() for c in balances]
 
