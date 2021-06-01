@@ -20,6 +20,8 @@ def get_coins(balances, cg: CoinGeckoAPI):
         "xrp": "XRP",
         "tlm": "Alien Worlds",
         "ltc": "Litecoin",
+        "bat": "Basic Attention Token",
+        "bch": "Bitcoin Cash",
     }
     symbols = [c.lower() for c in balances]
 
