@@ -88,8 +88,12 @@ def get_nexo_balances(
 ):
     print("Download csv from https://platform.nexo.io/transactions")
     df = pd.read_csv(csv_fname)
-    summed = df[df.Type == "Deposit"].groupby("Currency").sum("Amount")
-    balances = {i: row.Amount for i, row in summed.iterrows()}
+    summed = df[df.Type == "Deposit"].groupby("Currency").sum("Amount").to_dict()
+    withdraw = df[df.Type == "Withdrawal"].groupby("Currency").sum("Amount").to_dict()
+    for k, v in withdraw["Amount"].items():
+        summed["Amount"][k] += v
+    total = pd.DataFrame(summed)
+    balances = {i: row.Amount for i, row in total.iterrows()}
     for old, new in RENAMES.items():
         if old in balances:
             balances[new] = balances.pop(old)
