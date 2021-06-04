@@ -56,7 +56,9 @@ def get_prices(balances):
     ids = {sym2id[c.lower()] for c in balances if c.lower() in sym2id}
     ids.add(sym2id["busd"])
     prices = cg.get_price(ids=list(ids), vs_currencies="eur")
-    prices = {id2sym[k]: v["eur"] for k, v in prices.items()}
+    # Sometime the "eur" key is missing, this happens
+    # when the ticker is on CoinGecko but without price history
+    prices = {id2sym[k]: v.get("eur") for k, v in prices.items()}
     return prices
 
 
@@ -81,6 +83,9 @@ def add_value_and_price(balances, ignore=("degiro", "brand_new_day")):
                     price = 1
                 elif coin in prices:
                     price = prices[coin]
+                    if price is None:
+                        # Happens when ticker is on CoinGecko but without price history
+                        continue
                 elif coin.startswith("moo"):
                     continue  # are taking into consideration in YieldWatch
                 else:
