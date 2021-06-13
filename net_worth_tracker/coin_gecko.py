@@ -22,6 +22,7 @@ def get_coins(balances, cg: CoinGeckoAPI):
         "ltc": "Litecoin",
         "bat": "Basic Attention Token",
         "bch": "Bitcoin Cash",
+        "ata": "Automata",
     }
     symbols = [c.lower() for c in balances]
 
