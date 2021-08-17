@@ -155,9 +155,9 @@ class DeGiro:
                 k: v[k] for k in ["size", "price", "value", "name"]
             }
         cash = portfolio["CASH"]
-        eur_value = cash.get("EUR", {}).get("value", 0) + cash.get("FLATEX_EUR", {}).get(
-            "value", 0
-        )
+        eur_value = cash.get("EUR", {}).get("value", 0) + cash.get(
+            "FLATEX_EUR", {}
+        ).get("value", 0)
         holdings["EUR"] = dict(size=eur_value, value=eur_value, price=1, name="Euro")
         return holdings
 
@@ -177,9 +177,9 @@ def get_latest_prices(tickers):
         for ext in [".AS", ".DE", ""]:
             # Try AMS exchange, then German, then anything.
             t = yf.Ticker(ticker + ext)
-            if "open" in t.info:
+            if t.info.get("regularMarketPrice") is not None:
                 assert t.info["currency"] == "EUR"
-                price[ticker] = t.info["open"]
+                price[ticker] = t.info["regularMarketPrice"]
                 break
     return price
 
