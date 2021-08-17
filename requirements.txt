@@ -7,6 +7,6 @@ selenium
 python-binance >=0.7.10
 jupyter
 keyring
-yfinance
+yfinance >=0.1.63
 currencyconverter
 keyrings.cryptfile
