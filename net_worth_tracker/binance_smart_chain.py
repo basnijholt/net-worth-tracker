@@ -13,7 +13,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 from net_worth_tracker.utils import euro_per_dollar, read_config
 
-IGNORE_TOKENS = {"ONX", "Long", "ALPACA"}
+IGNORE_TOKENS = {"ONX", "Long", "ALPACA", "FLUX", "ICA"}
 
 # Pool/vault -> coin name
 LP_MAPPING = {
