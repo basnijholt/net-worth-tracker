@@ -128,13 +128,16 @@ def load_data(folder=Path("data")):
     return datas
 
 
-def data_to_df(date, data, ignore=(), renames=RENAMES):
+def data_to_df(date, data, ignore=(), ignore_symbols=(), renames=RENAMES):
     coin_mapping = defaultdict(list)
+    ignore_symbols = set(ignore_symbols)
     for where, bals in data["balances"].items():
         if where in ignore:
             continue
         for coin, info in bals.items():
             if coin.startswith("moo"):  # ignore Beefy.Finance tokens
+                continue
+            if coin in ignore_symbols:
                 continue
             coin = renames.get(coin, coin)
             coin_mapping[coin].append(dict(info, where=where))
@@ -161,8 +164,11 @@ def data_to_df(date, data, ignore=(), renames=RENAMES):
     return df
 
 
-def datas_to_df(datas, ignore=(), renames=RENAMES):
-    dfs = [data_to_df(date, data, ignore, renames) for date, data in datas.items()]
+def datas_to_df(datas, ignore=(), ignore_symbols=(), renames=RENAMES):
+    dfs = [
+        data_to_df(date, data, ignore, ignore_symbols, renames)
+        for date, data in datas.items()
+    ]
     return pd.concat(dfs).sort_values("date")
 
 

@@ -11,6 +11,7 @@ from net_worth_tracker import (
     plots,
     utils,
 )
+from net_worth_tracker.ignore import ignore_symbols
 
 __all__ = [
     "binance",
@@ -21,6 +22,7 @@ __all__ = [
     "coin_gecko",
     "degiro",
     "exodus",
+    "ignore_symbols",
     "nexo",
     "plots",
     "utils",
