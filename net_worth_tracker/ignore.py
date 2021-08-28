@@ -20,4 +20,7 @@ ignore_symbols = (
     "BSCTOKEN",
     "MNEB",
     "MCDAI",
+    "EVER",
+    "WSG",
+    "AIR",
 )
