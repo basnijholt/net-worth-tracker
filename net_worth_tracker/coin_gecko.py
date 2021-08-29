@@ -46,14 +46,14 @@ def get_coins(balances, cg: CoinGeckoAPI):
             vs_currencies="eur",
             include_market_cap=True,
         )
-        info = max(
+        mc, info = max(
             [(prices[info["id"]]["eur_market_cap"], info) for info in infos],
             key=lambda x: x[0],
-        )[1]
+        )
         sym2name[symbol] = info["name"]
         duplicates.remove(info["symbol"])
         print(
-            f"Guessing sym2name => '{info['symbol']}': '{info['name']}' because of higher Market Cap"
+            f"Guessing sym2name => '{info['symbol']}': '{info['name']}' because of higher Market Cap (€{mc:.2f})"
         )
 
     sym2id = {}
