@@ -23,7 +23,9 @@ def get_coins(balances, cg: CoinGeckoAPI):
         "bat": "Basic Attention Token",
         "bch": "Bitcoin Cash",
         "ata": "Automata",
-        "alpaca": 'Alpaca Finance',
+        "alpaca": "Alpaca Finance",
+        "ica": "Icarus Finance",
+        "flux": "Flux",
     }
     symbols = [c.lower() for c in balances]
 
@@ -35,12 +37,25 @@ def get_coins(balances, cg: CoinGeckoAPI):
         symbol_map[c["symbol"]].append(c)
     duplicates = {symbol for symbol, lst in symbol_map.items() if len(lst) > 1}
     duplicates = duplicates.intersection(symbols)
-    unknown_duplicates = duplicates.difference(sym2name.keys())
+    unknown_duplicates = list(duplicates.difference(sym2name.keys()))
     for symbol in unknown_duplicates:
-        raise ValueError(
-            f"{symbol} appears twice! Edit `sym2name`. "
-            f"Use one of:\n{symbol_map[symbol]}."
+        infos = symbol_map[symbol]
+        print(f"{symbol} appears twice! Edit `sym2name`. " f"Use one of:\n{infos}.")
+        prices = cg.get_price(
+            ids=[info["id"] for info in infos],
+            vs_currencies="eur",
+            include_market_cap=True,
         )
+        info = max(
+            [(prices[info["id"]]["eur_market_cap"], info) for info in infos],
+            key=lambda x: x[0],
+        )[1]
+        sym2name[symbol] = info["name"]
+        duplicates.remove(info["symbol"])
+        print(
+            f"Guessing sym2name => '{info['symbol']}': '{info['name']}' because of higher Market Cap"
+        )
+
     sym2id = {}
     id2sym = {}
     for c in coin_list:
