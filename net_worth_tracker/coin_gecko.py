@@ -44,7 +44,7 @@ def get_coins(balances, cg: CoinGeckoAPI):
         prices = cg.get_price(
             ids=[info["id"] for info in infos],
             vs_currencies="eur",
-            include_market_cap=True,
+            include_market_cap="true",
         )
         assert all("eur_market_cap" in prices[info["id"]] for info in infos), (
             prices,
