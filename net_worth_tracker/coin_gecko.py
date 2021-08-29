@@ -46,6 +46,7 @@ def get_coins(balances, cg: CoinGeckoAPI):
             vs_currencies="eur",
             include_market_cap=True,
         )
+        assert all("eur_market_cap" in prices[info["id"]] for info in infos), infos
         mc, info = max(
             [(prices[info["id"]]["eur_market_cap"], info) for info in infos],
             key=lambda x: x[0],
