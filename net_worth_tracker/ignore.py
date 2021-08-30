@@ -23,4 +23,5 @@ ignore_symbols = (
     "EVER",
     "WSG",
     "AIR",
+    "PAYOU",
 )

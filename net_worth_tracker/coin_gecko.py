@@ -26,6 +26,7 @@ def get_coins(balances, cg: CoinGeckoAPI):
         "alpaca": "Alpaca Finance",
         "ica": "Icarus Finance",
         "flux": "Flux",
+        "banana": "ApeSwap Finance",
     }
     symbols = [c.lower() for c in balances]
 
