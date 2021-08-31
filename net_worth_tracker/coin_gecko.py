@@ -42,14 +42,11 @@ def get_coins(balances, cg: CoinGeckoAPI):
     for symbol in unknown_duplicates:
         infos = symbol_map[symbol]
         print(f"{symbol} appears twice! Edit `sym2name`. " f"Use one of:\n{infos}.")
+        # Getting the coin with the largest market cap
         prices = cg.get_price(
             ids=[info["id"] for info in infos],
             vs_currencies="eur",
             include_market_cap="true",
-        )
-        assert all("eur_market_cap" in prices[info["id"]] for info in infos), (
-            prices,
-            infos,
         )
         mc, info = max(
             [(prices[info["id"]]["eur_market_cap"], info) for info in infos],
