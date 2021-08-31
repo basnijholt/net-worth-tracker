@@ -152,6 +152,8 @@ def data_to_df(date, data, ignore=(), ignore_symbols=(), renames=RENAMES):
             pass
         else:
             info["price"] = info["value"] / info["amount"]
+            if info["value"] == 0:
+                continue
             ratios = {f"ratio_in_{d['where']}": d["value"] / info["value"] for d in lst}
             info.update(ratios)
         infos.append(info)
