@@ -24,4 +24,6 @@ ignore_symbols = (
     "WSG",
     "AIR",
     "PAYOU",
+    "VERA",
+    "XEC",
 )
