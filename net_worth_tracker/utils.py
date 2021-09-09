@@ -17,6 +17,7 @@ DEFAULT_CONFIG = Path("~/.config/crypto_etf.conf").expanduser()
 RENAMES = {
     "BTCB": "BTC",
     "WBNB": "BNB",
+    "beltBNB": "BNB",
     "iBTC": "BTC",
     "iETH": "ETH",
     "BETH": "ETH",
