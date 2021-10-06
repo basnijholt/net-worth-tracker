@@ -4,7 +4,7 @@ import pandas as pd
 
 
 @lru_cache
-def get_blockfi_balances(csv_fname: str = "~/Downloads/transactions.csv"):
+def get_blockfi_balances(csv_fname: str = "~/Downloads/trade_report_all.csv"):
     print("Download csv from https://app.blockfi.com/settings/reports")
     df = pd.read_csv(csv_fname)
     summed = df.groupby("Cryptocurrency").sum()
