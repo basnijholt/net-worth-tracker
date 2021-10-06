@@ -7,6 +7,7 @@ from net_worth_tracker import (
     coin_gecko,
     degiro,
     exodus,
+    manual,
     nexo,
     plots,
     utils,
@@ -14,8 +15,8 @@ from net_worth_tracker import (
 from net_worth_tracker.ignore import ignore_symbols
 
 __all__ = [
-    "binance",
     "binance_smart_chain",
+    "binance",
     "blockfi",
     "brand_new_day",
     "celsius",
@@ -23,6 +24,7 @@ __all__ = [
     "degiro",
     "exodus",
     "ignore_symbols",
+    "manual",
     "nexo",
     "plots",
     "utils",

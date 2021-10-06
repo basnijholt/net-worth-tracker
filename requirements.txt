@@ -1,12 +1,13 @@
-numpy
-pandas
-matplotlib
 bscscan-python ==1.0.0
-pycoingecko
-selenium
-python-binance >=0.7.10
+currencyconverter
 jupyter
 keyring
-yfinance >=0.1.63
-currencyconverter
 keyrings.cryptfile
+matplotlib
+numpy
+pandas
+pycoingecko
+python-binance >=0.7.10
+pyyaml
+selenium
+yfinance >=0.1.63
