@@ -5,11 +5,6 @@ from typing import Optional
 
 import requests
 from bscscan import BscScan
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.expected_conditions import presence_of_element_located
-from selenium.webdriver.support.ui import WebDriverWait
 
 from net_worth_tracker.utils import euro_per_dollar, read_config
 
@@ -66,106 +61,6 @@ def get_bep20_balances(my_address: Optional[str] = None, api_key: Optional[str] 
             balances[new] = balances.pop(old)
 
     return {k: dict(amount=v) for k, v in balances.items()}
-
-
-@lru_cache
-def scrape_yieldwatch(
-    my_address: Optional[str] = None, headless=True, timeout: int = 30
-):
-    config = read_config()
-    if my_address is None:
-        my_address = config["bsc"]["address"]
-    chrome_options = Options()
-    if headless:
-        chrome_options.add_argument("--headless")
-    with webdriver.Chrome(options=chrome_options) as driver:
-        WebDriverWait(driver, timeout)
-        driver.get("https://www.yieldwatch.net/")
-        for letter in my_address:
-            address_bar = driver.find_element_by_id("addressInputField")
-            address_bar.send_keys(letter)
-
-        icon_bar = driver.find_element_by_class_name("centered.bottom.aligned.row")
-        buttons = icon_bar.find_elements_by_class_name("center.aligned.column")
-        for button in buttons:
-            grayscale = button.find_element_by_class_name(
-                "ui.centered.image"
-            ).value_of_css_property("filter")
-            if grayscale == "grayscale(1)":
-                button.click()
-
-        button = driver.find_element_by_class_name("binoculars")
-        button.click()
-
-        # Wait until the next page is loaded
-        element_present = presence_of_element_located((By.CLASS_NAME, "content.active"))
-        WebDriverWait(driver, timeout).until(element_present)
-
-        infos = defaultdict(dict)
-        segments = driver.find_elements_by_class_name("ui.segment")
-        for segment in segments:
-            # Many elements have the "ui segment" class, only pick the ones with
-            # the "accordion ui" style.
-            for defi in segment.find_elements_by_class_name("accordion.ui"):
-                boxes = defi.find_elements_by_class_name("ui.equal.width.grid")
-                if not boxes:
-                    continue
-                which = defi.text.split("\n")[0]
-                for box in boxes:
-                    header, content = box.find_elements_by_class_name("row")
-                    header_text = header.text.split("\n")
-                    box_name = header_text[0]
-                    dollar_value = header_text[1]
-                    assert "$" in dollar_value
-                    dollar_value = float(dollar_value.replace(",", "").replace("$", ""))
-                    # Get the columns in the box, only the first two are relevant
-                    columns = content.find_elements_by_class_name(
-                        "collapsing.right.aligned"
-                    )
-                    names = columns[0].text.split("\n")
-                    amounts = columns[1].text.split("\n")
-                    d = defaultdict(list)
-                    for i, amount in enumerate(amounts):
-                        amount, coin = amount.split(" ", 1)
-                        name = names[min(i, len(names) - 1)]
-                        amount = (
-                            float(amount[:-1]) * 1000
-                            if "k" in amount
-                            else float(amount)
-                        )
-                        d[name].append((amount, coin))
-                    d = dict(d)
-                    d["dollar_value"] = dollar_value
-                    infos[which][box_name] = dict(d)
-    return dict(infos)
-
-
-def scraped_yieldwatch_to_balances(yieldwatch):
-    balances = defaultdict(lambda: defaultdict(float))
-    for defi, vaults in yieldwatch.items():
-        for vault, info in vaults.items():
-            for (type_, amount_coin_list) in info.items():
-                if type_ in ("Harvest", "dollar_value"):
-                    # is already taken into account in wallet balance
-                    # if Harvest, and dollar_value is used else where.
-                    continue
-
-                if vault in LP_MAPPING:
-                    assert len(amount_coin_list) == 1
-                    norm_coin = LP_MAPPING[vault]
-                    balances[norm_coin]["value"] = (
-                        info["dollar_value"] * euro_per_dollar()
-                    )
-
-                for amount, coin in amount_coin_list:
-                    norm_coin = LP_MAPPING.get(vault, coin)
-                    norm_coin = RENAMES.get(norm_coin, norm_coin)
-                    balances[norm_coin]["amount"] += float(amount)
-    balances = {k: dict(v) for k, v in balances.items()}
-    for coin, info in balances.items():
-        if "value" in info:
-            info["price"] = info["value"] / info["amount"]
-    return {k: dict(v) for k, v in balances.items()}
 
 
 @lru_cache
@@ -259,15 +154,3 @@ def get_yieldwatch_balances(  # noqa: C901
     if return_raw_data:
         return balances, raw_data
     return balances
-
-
-def update_eur_balances(eur_balances, yieldwatch, balances_bsc):
-    vaults = {}
-    for d in yieldwatch.values():
-        vaults.update(d)
-    missing = balances_bsc.keys() - eur_balances.keys()
-    for coin in missing:
-        norm_coin = LP_MAPPING_REVERSE.get(coin, coin)
-        if norm_coin in vaults:
-            print(f"Found €-value of {coin} in yieldwatch data")
-            eur_balances[coin] = vaults[norm_coin]["dollar_value"]
