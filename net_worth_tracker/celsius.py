@@ -54,4 +54,4 @@ def get_transactions(headers, pages):
 def get_celsius_balances():
     headers = get_headers_from_keyring()
     bals = get_balance(headers)["balance"]
-    return {k.upper(): dict(amount=float(v)) for k, v in bals.items() if v != "0"}
+    return {k.upper(): dict(amount=float(v)) for k, v in bals.items() if float(v) > 0}
