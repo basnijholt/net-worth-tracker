@@ -1,7 +1,7 @@
 import time
 from collections import defaultdict
 from functools import lru_cache
-from typing import Optional
+from typing import Literal, Optional
 
 import requests
 from bscscan import BscScan
@@ -63,32 +63,78 @@ def get_bep20_balances(my_address: Optional[str] = None, api_key: Optional[str] 
     return {k: dict(amount=v) for k, v in balances.items()}
 
 
+def get_wallet_balances_from_yieldwatch(
+    raw: dict, base="EUR", minimum_value: float = 1.0
+):
+    base_currency = raw["currencies"][base]
+    balances = {}
+    for info in raw["walletBalance"]["balances"]:
+        info = info.copy()
+        info["price"] = info["priceInUSD"] / base_currency
+        info["value"] = info["balance"] * info["price"]
+        if info["value"] >= minimum_value:
+            balances[info["symbol"]] = {
+                "amount": info["balance"],
+                "price": info["price"],
+                "value": info["value"],
+            }
+    return balances
+
+
 @lru_cache
 def get_yieldwatch_balances(  # noqa: C901
-    my_address: Optional[str] = None, return_raw_data: bool = False
+    my_address: Optional[str] = None,
+    return_raw_data: bool = False,
+    network: Literal["bsc", "polygon"] = "bsc",
+    bearer_token: Optional[str] = None,
 ):
     config = read_config()
     if my_address is None:
         my_address = config["bsc"]["address"]
-    platforms = {
-        "BeefyFinance": "beefy",
-        "PancakeSwap": "pancake",
-        "HyperJump": "hyperjump",
-        "Blizzard": "blizzard",
-        "bDollar": "bdollar",
-        "Jetfuel": "jetfuel",
-        "Autofarm": "auto",
-        "bunny": "bunny",
-        "Acryptos": "acryptos",
-        "MDex": "mdex",
-        "Alpha": "alpha",
-        "Venus": "venus",
-        "CreamFinance": "cream",
-    }
+    if network == "bsc":
+        platforms = {
+            "Acryptos": "acryptos",
+            "Alpha": "alpha",
+            "ApeSwap": "apeswap",
+            "Autofarm": "auto",
+            "BeefyFinance": "beefy",
+            "Belt": "belt",
+            "Biswap": "biswap",
+            "Blizzard": "blizzard",
+            "bunny": "bunny",
+            "Bunnypark": "bunnypark",
+            "CreamFinance": "cream",
+            "Fortress": "fortress",
+            "HyperJump": "hyperjump",
+            "Jetfuel": "jetfuel",
+            "MDex": "mdex",
+            "Moonpot": "moonpot",
+            "PancakeSwap": "pancake",
+            "Qubit": "qubit",
+            "Venus": "venus",
+            "Wault": "wault",
+        }
+    elif network == "polygon":
+        platforms = {
+            "BeefyFinance": "beefy",
+            "ApeSwap": "apeswap",
+            "Wault": "wault",
+            "Sushi": "sushi",
+            "QuickSwap": "quickswap",
+            "Jetfuel": "jetfuel",
+            "CreamFinance": "cream",
+            # "Autofarm": "auto",  # Not yet supported
+        }
     platforms_str = ",".join(platforms.values())
-    url = f"https://www.yieldwatch.net/api/all/{my_address}?platforms={platforms_str}"
+    which = {"bsc": "all", "polygon": "poly"}[network]
+    url = (
+        f"https://www.yieldwatch.net/api/{which}/{my_address}?platforms={platforms_str}"
+    )
     for i in range(3):
-        req = requests.get(url)
+        kwargs = {}
+        if bearer_token is not None:
+            kwargs["headers"] = {"Authorization": f"Bearer {bearer_token}"}
+        req = requests.get(url, **kwargs)
         response = req.json()
         if "result" in response:
             raw_data = response["result"]
