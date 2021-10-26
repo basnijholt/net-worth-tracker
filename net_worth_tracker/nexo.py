@@ -125,7 +125,7 @@ def get_nexo_balances(folder=FOLDER):
     data = load_latest_data(folder)
     data = load_latest_data()
     return {
-        RENAMES.get(d["short_name"], d["short_name"]): d["total_balance"]
+        RENAMES.get(d["short_name"], d["short_name"]): {"amount": d["total_balance"]}
         for d in data["balances"]
         if d["total_balance"] > 0
     }
