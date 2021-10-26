@@ -88,6 +88,16 @@ def get_nexo_balances(
 ):
     print("Download csv from https://platform.nexo.io/transactions")
     df = pd.read_csv(csv_fname)
+
+    def fix_amount(x):
+        try:
+            return float(x)
+        except ValueError:
+            a, b = x.split("/")
+            return float(a) + float(b)
+
+    df["Amount"] = df["Amount"].apply(fix_amount)
+
     summed = df[df.Type == "Deposit"].groupby("Currency").sum("Amount").to_dict()
     withdraw = df[df.Type == "Withdrawal"].groupby("Currency").sum("Amount").to_dict()
     for k, v in withdraw["Amount"].items():
