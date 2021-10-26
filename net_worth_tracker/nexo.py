@@ -1,3 +1,4 @@
+import json
 import time
 from functools import lru_cache
 from pathlib import Path
@@ -7,18 +8,22 @@ import pandas as pd
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.support.expected_conditions import text_to_be_present_in_element
 from selenium.webdriver.support.ui import WebDriverWait
 
-from .utils import get_password
+from .utils import fname_from_date, get_password
 
-RENAMES = {"NEXOBEP2": "NEXO"}
+RENAMES = {"NEXOBEP2": "NEXO", "NEXONEXO": "NEXO"}
+
+FOLDER = Path(__file__).parent.parent / "nexo_data"
 
 
 def scrape_nexo_csv(
     username: Optional[str] = None,
     password: Optional[str] = None,
     timeout=30,
+    download_transactions_csv: bool = False,
 ):
     if username is None:
         username = get_password("username", "nexo")
@@ -26,8 +31,11 @@ def scrape_nexo_csv(
         password = get_password(username, "nexo")
 
     chrome_options = Options()
+    DesiredCapabilities.CHROME["goog:loggingPrefs"] = {"performance": "ALL"}
 
-    with webdriver.Chrome(options=chrome_options) as driver:
+    with webdriver.Chrome(
+        options=chrome_options, desired_capabilities=DesiredCapabilities.CHROME
+    ) as driver:
 
         # Login
         driver.get("https://platform.nexo.io/")
@@ -53,37 +61,78 @@ def scrape_nexo_csv(
         )
         wait = WebDriverWait(driver, 60)
         wait.until(element_present)
+        if download_transactions_csv:
+            # Note: one cannot correctly get the balances from the csv
+            # file after an exchange on Nexo.
+            transactions_button = next(
+                s
+                for s in driver.find_elements_by_tag_name("span")
+                if "Transaction" in s.text
+            )
+            transactions_button.click()
 
-        transactions_button = next(
-            s
-            for s in driver.find_elements_by_tag_name("span")
-            if "Transaction" in s.text
-        )
-        transactions_button.click()
+            element_present = text_to_be_present_in_element(
+                (By.CLASS_NAME, "text"), "Export"
+            )
+            wait = WebDriverWait(driver, 5)
+            wait.until(element_present)
 
-        element_present = text_to_be_present_in_element(
-            (By.CLASS_NAME, "text"), "Export"
-        )
-        wait = WebDriverWait(driver, 5)
-        wait.until(element_present)
-
-        export_button = next(
-            b for b in driver.find_elements_by_tag_name("button") if "Export" in b.text
-        )
-        fname = Path("~/Downloads/nexo_transactions.csv").expanduser()
-        if fname.exists():
-            fname.unlink()
-        export_button.click()
-        for _ in range(10):
-            time.sleep(1)
+            export_button = next(
+                b
+                for b in driver.find_elements_by_tag_name("button")
+                if "Export" in b.text
+            )
+            fname = Path("~/Downloads/nexo_transactions.csv").expanduser()
             if fname.exists():
-                print(f"Downloaded {fname}")
-                return
-        print("Didn't download the file")
+                fname.unlink()
+            export_button.click()
+            for _ in range(10):
+                time.sleep(1)
+                if fname.exists():
+                    print(f"Downloaded {fname}")
+                    return
+            print("Didn't download the file")
+        else:
+            # Get items from Network tab
+            events = [
+                json.loads(entry["message"])["message"]
+                for entry in driver.get_log("performance")
+            ]
+
+            # Select relevant event
+            event = next(
+                event
+                for event in events
+                if "https://platform.nexo.io/api/1/get_balances" in str(event)
+            )
+            # Request the content of event
+            response = driver.execute_cdp_cmd(
+                "Network.getResponseBody", {"requestId": event["params"]["requestId"]}
+            )
+            result = json.loads(response["body"])["payload"]
+            with fname_from_date(FOLDER).open("w") as f:
+                json.dump(result, f, indent="  ")
+
+
+def load_latest_data(folder=FOLDER):
+    last_file = sorted(folder.glob("*.json"))[-1]
+    with last_file.open("r") as f:
+        return json.load(f)
 
 
 @lru_cache
-def get_nexo_balances(
+def get_nexo_balances(folder=FOLDER):
+    data = load_latest_data(folder)
+    data = load_latest_data()
+    return {
+        RENAMES.get(d["short_name"], d["short_name"]): d["total_balance"]
+        for d in data["balances"]
+        if d["total_balance"] > 0
+    }
+
+
+@lru_cache
+def get_nexo_balances_from_csv(
     csv_fname: str = "~/Downloads/nexo_transactions.csv",
 ):
     print("Download csv from https://platform.nexo.io/transactions")
