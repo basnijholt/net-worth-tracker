@@ -191,13 +191,13 @@ def get_df(key, datas):
 
 
 def get_df_wallet(wallet, datas):
-    df = pd.DataFrame(
-        [
-            {k: v["amount"] for k, v in data["balances"][wallet].items()}
-            for data in datas.values()
-        ],
-        [date for date in datas.keys()],
-    ).sort_index()
+    x_i = []
+    x_j = []
+    for date, data in datas.items():
+        if wallet in data["balances"]:
+            x_i.append({k: v["amount"] for k, v in data["balances"][wallet].items()})
+            x_j.append(date)
+    df = pd.DataFrame(x_i, x_j).sort_index()
     order = df.iloc[-1].sort_values(ascending=False).index
     return df[order]
 
