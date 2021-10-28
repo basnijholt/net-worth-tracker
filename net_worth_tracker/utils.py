@@ -1,5 +1,6 @@
 import base64
 import configparser
+import contextlib
 import datetime
 import getpass
 import json
@@ -283,3 +284,21 @@ def unique_dt_per_day(df):
         df.loc[str(date).split("T")[0]].index[-1]
         for date in df.date.dt.normalize().unique()
     ]
+
+
+@contextlib.contextmanager
+def hide(summary="Click here"):
+    import io
+    from contextlib import redirect_stdout
+
+    from IPython.display import HTML, display
+
+    f = io.StringIO()
+    with redirect_stdout(f):
+        yield
+    html = HTML(
+        f"<details><summary>{summary}</summary>"
+        + f.getvalue().replace("\n", "<br>")
+        + "</details>"
+    )
+    return display(html)
