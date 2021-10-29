@@ -215,8 +215,10 @@ def overview_df(df):
     df_24h = at_time_ago(df, datetime.timedelta(hours=24))
     df_last = at_time_ago(df, datetime.timedelta(0))
     df_1w = at_time_ago(df, datetime.timedelta(days=7))
+    df_30d = at_time_ago(df, datetime.timedelta(days=30))
     df_last["1w price (%)"] = 100 * (df_last.price - df_1w.price) / df_1w.price
     df_last["24h price (%)"] = 100 * (df_last.price - df_24h.price) / df_24h.price
+    df_last["30d price (%)"] = 100 * (df_last.price - df_30d.price) / df_30d.price
     df_last["ATH price (€)"] = ATH = df.groupby("symbol").max().price
     df_last["ATH value (€)"] = df.groupby("symbol").max().value
     df_last["ATL value (€)"] = df.groupby("symbol").min().value
@@ -229,7 +231,7 @@ def overview_df(df):
 
 def styled_overview_df(df, min_value=1):
     df_last = overview_df(df)
-    df_last = df_last[df_last.value > min_value]
+    df_last = df_last[df_last.value > min_value].sort_values("value", ascending=False)
     overview = df_last[
         [
             "value",
@@ -237,12 +239,13 @@ def styled_overview_df(df, min_value=1):
             "price",
             "24h price (%)",
             "1w price (%)",
+            "30d price (%)",
             "ATH change (%)",
             "ATL change (%)",
             "ATH price (€)",
             "ATH value (€)",
         ]
-    ].sort_values("value", ascending=False)
+    ]
 
     def color_negative_red(val):
         """
@@ -254,8 +257,10 @@ def styled_overview_df(df, min_value=1):
         return "color: %s" % color
 
     net_worth = df_last.value.sum()
-    overview["value"] = overview["value"].apply(
-        lambda x: f"€{x:.2f} ({100*x/net_worth:.1f}%)"
+    df_last["rel_part"] = 100 * df_last.value / net_worth
+    df_last["cum_rel_part"] = df_last["rel_part"].cumsum()
+    overview.loc[:, "value"] = df_last.apply(
+        lambda x: f"€{x.value:.2f} ({x.rel_part:.1f}%, {x.cum_rel_part:.1f}%)", axis=1
     )
     pct_cols = [c for c in overview.columns if "%" in c]
     format = {c: "{:+.2f}%" for c in pct_cols}
