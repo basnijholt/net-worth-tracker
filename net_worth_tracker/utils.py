@@ -289,12 +289,11 @@ def unique_dt_per_day(df):
 @contextlib.contextmanager
 def hide(summary="Click here"):
     import io
-    from contextlib import redirect_stdout
 
     from IPython.display import HTML, display
 
     f = io.StringIO()
-    with redirect_stdout(f):
+    with contextlib.redirect_stdout(f):
         yield
     html = HTML(
         f"<details><summary>{summary}</summary>"
