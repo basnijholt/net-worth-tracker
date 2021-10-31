@@ -127,13 +127,15 @@ def save_data(
         json.dump(data, f, indent="  ")
 
 
-def load_data(folder=Path("data")):
+def load_data(folder=Path("data"), ndays: int = 365):
     fnames = sorted(Path(folder).glob("*.json"))
     datas = {}
+    min_date = datetime.datetime.today() - datetime.timedelta(days=ndays)
     for fname in fnames:
-        with fname.open("r") as f:
-            dt = datetime.datetime.strptime(fname.with_suffix("").name, "%Y%m%d-%H%M%S")
-            datas[dt] = json.load(f)
+        dt = datetime.datetime.strptime(fname.with_suffix("").name, "%Y%m%d-%H%M%S")
+        if dt >= min_date:
+            with fname.open("r") as f:
+                datas[dt] = json.load(f)
     return datas
 
 
