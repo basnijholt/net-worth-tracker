@@ -5,3 +5,4 @@ cd $DIR
 . ~/.bash_profile
 jupyter nbconvert --ExecutePreprocessor.timeout=600 --to html --execute crypto-tracker.ipynb  --no-input
 fu crypto-tracker.html
+fu current_value
