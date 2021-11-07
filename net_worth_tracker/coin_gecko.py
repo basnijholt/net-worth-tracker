@@ -27,6 +27,7 @@ def get_coins(balances, cg: CoinGeckoAPI):
         "ica": "Icarus Finance",
         "flux": "Flux",
         "banana": "ApeSwap Finance",
+        "ftm": "Fantom",
     }
     symbols = [c.lower() for c in balances]
 
@@ -53,7 +54,6 @@ def get_coins(balances, cg: CoinGeckoAPI):
             key=lambda x: x[0],
         )
         sym2name[symbol] = info["name"]
-        duplicates.remove(info["symbol"])
         print(
             f"Guessing sym2name => '{info['symbol']}': '{info['name']}' because of higher Market Cap (€{mc:.2f})"
         )
