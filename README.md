@@ -8,6 +8,7 @@ Can extract crypto portfolio data from:
 - Binance.com
 - Exodus wallet
 - Celsius
+- ApeBoard for tracking on many DeFi chains
 - CoinGecko (for prices)
 
 and stock/cash balance from:

@@ -23,6 +23,8 @@ RENAMES = {
     "iETH": "ETH",
     "BETH": "ETH",
     "beltETH": "ETH",
+    "WETH": "ETH",
+    "WMATIC": "MATIC",
 }
 
 
@@ -109,11 +111,15 @@ def fname_from_date(folder, date=None, ext=".json") -> Path:
 
 
 def combine_balances(*balances_dicts):
-    balances = defaultdict(float)
+    balances = defaultdict(lambda: defaultdict(float))
     for bal in balances_dicts:
-        for coin, amount in bal.items():
-            balances[coin] += amount
-    return dict(sorted(balances.items()))
+        for coin, dct in bal.items():
+            balances[coin]["amount"] += dct["amount"]
+            if "value" in dct:
+                balances[coin]["value"] += dct["value"]
+            if "price" in dct:
+                balances[coin]["price"] = dct["price"]
+    return {k: dict(v) for k, v in balances.items()}
 
 
 def save_data(

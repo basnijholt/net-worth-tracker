@@ -17,6 +17,7 @@ from .utils import fname_from_date, get_password
 RENAMES = {"NEXOBEP2": "NEXO", "NEXONEXO": "NEXO"}
 
 FOLDER = Path(__file__).parent.parent / "nexo_data"
+FOLDER.mkdir(parents=True, exist_ok=True)
 
 
 def scrape_nexo_csv(
