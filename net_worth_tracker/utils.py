@@ -188,7 +188,8 @@ def datas_to_df(datas, ignore=(), ignore_symbols=(), renames=RENAMES):
         data_to_df(date, data, ignore, ignore_symbols, renames)
         for date, data in datas.items()
     ]
-    return pd.concat(dfs).sort_values("date")
+    df = pd.concat(dfs).sort_values("date")
+    return add_avg_price(df)
 
 
 def get_df(key, datas):
@@ -314,3 +315,21 @@ def hide(summary="Click here"):
         + "</details>"
     )
     return display(html)
+
+
+def add_avg_price(df):
+    def _add_avg_price(gr):
+        first = gr.iloc[0]
+        last = gr.iloc[-1]
+        gr["Δamount"] = gr.amount.diff()
+        assert abs(gr["Δamount"].sum() + first.amount - last.amount) < 1e-8
+        gr["Δvalue"] = gr["Δamount"] * gr.price
+        gr["total_spend"] = gr["Δvalue"].cumsum() + first.value
+        gr["avg_price"] = gr.total_spend / gr.amount
+        return gr
+
+    df = df.reset_index(drop=True)
+    for symbol, gr in df.groupby("symbol"):
+        result = _add_avg_price(gr)
+        df.loc[gr.index, "avg_price"] = result["avg_price"]
+    return df
