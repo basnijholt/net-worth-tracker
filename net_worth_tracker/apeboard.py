@@ -79,9 +79,6 @@ def download_from_apeboard(
 
 
 def load_last_data(split_tri_pool=True, with_price_and_value=False):
-    if not with_price_and_value:
-        assert not split_out_atricrypto
-
     last_positions = sorted(FOLDER.glob("Export Positions *.csv"))[-1]
     last_wallets = sorted(FOLDER.glob("Export Wallets *.csv"))[-1]
     positions = pd.read_csv(last_positions)
@@ -112,13 +109,15 @@ def load_last_data(split_tri_pool=True, with_price_and_value=False):
         for _, row in positions.iterrows()
     ]
     balances_defi = combine_balances(*balances_defi)
-    if not with_price_and_value:
-        for symbol, info in balances_defi.items():
-            info.pop("price", None)
-            info.pop("value", None)
 
     if split_tri_pool:
         balances_defi = split_out_atricrypto(balances_defi)
+
+    if not with_price_and_value:
+        for info in balances_defi.values():
+            info.pop("price", None)
+            info.pop("value", None)
+
     return balances_wallet, balances_defi
 
 
