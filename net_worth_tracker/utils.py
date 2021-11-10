@@ -112,13 +112,24 @@ def fname_from_date(folder, date=None, ext=".json") -> Path:
 
 def combine_balances(*balances_dicts):
     balances = defaultdict(lambda: defaultdict(float))
+    exclude_price_and_value = set()
     for bal in balances_dicts:
         for coin, dct in bal.items():
             balances[coin]["amount"] += dct["amount"]
             if "value" in dct:
                 balances[coin]["value"] += dct["value"]
+            else:
+                exclude_price_and_value.add(coin)
+
             if "price" in dct:
                 balances[coin]["price"] = dct["price"]
+            else:
+                exclude_price_and_value.add(coin)
+
+    for coin in exclude_price_and_value:
+        balances[coin].pop("price", None)
+        balances[coin].pop("value", None)
+
     return {k: dict(v) for k, v in balances.items()}
 
 
@@ -315,6 +326,14 @@ def hide(summary="Click here"):
         + "</details>"
     )
     return display(html)
+
+
+@contextlib.contextmanager
+def try_and_print_error(name=None):
+    try:
+        yield
+    except Exception as e:
+        print(name, e)
 
 
 def add_avg_price(df):
