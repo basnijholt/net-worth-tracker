@@ -11,6 +11,7 @@ Can extract crypto portfolio data from:
 - ApeBoard for tracking on many DeFi chains
 - CoinGecko (for prices)
 - Beefy vaults
+- Yearn V3
 
 and stock/cash balance from:
 - Brand New Day

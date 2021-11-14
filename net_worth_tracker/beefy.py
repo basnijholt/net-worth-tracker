@@ -82,8 +82,9 @@ def get_from_blockchain(vault):
         abi=get_abis()[vault["abi"]],
     )
     balance = c.caller.balanceOf(vault["my_address"]) * c.caller.getPricePerFullShare()
-    balance /= 1e18 ** 2
+    decimals = c.caller.decimals()
+    balance /= (10 ** decimals) ** 2
     prices = get_prices()
     price = prices[pool["oracle"]][ID]
     value = balance * price * euro_per_dollar()
-    return {"total": balance, "value": value, "price": price}
+    return {"amount": balance, "value": value, "price": price}

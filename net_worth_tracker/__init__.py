@@ -13,6 +13,7 @@ from net_worth_tracker import (
     nexo,
     plots,
     utils,
+    yearn,
 )
 from net_worth_tracker.ignore import ignore_symbols
 
@@ -32,4 +33,5 @@ __all__ = [
     "nexo",
     "plots",
     "utils",
+    "yearn",
 ]
