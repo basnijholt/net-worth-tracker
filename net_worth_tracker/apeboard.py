@@ -121,12 +121,12 @@ def load_last_data(split_tri_pool=True, with_price_and_value=False):
     return balances_wallet, balances_defi
 
 
-def split_out_atricrypto(balances_defi):
+def split_out_atricrypto(balances_defi, name="CRVUSDBTCETH"):
     from net_worth_tracker.coin_gecko import get_prices
 
     prices = get_prices(dict(BTC=None, ETH=None, USDT=None))
 
-    value_per_part = balances_defi.pop("CRVUSDBTCETH")["value"] / 3
+    value_per_part = balances_defi.pop(name)["value"] / 3
 
     balances = {
         symbol: {

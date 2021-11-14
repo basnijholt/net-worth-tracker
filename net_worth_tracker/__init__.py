@@ -1,5 +1,6 @@
 from net_worth_tracker import (
     apeboard,
+    beefy,
     binance,
     binance_smart_chain,
     blockfi,
@@ -17,6 +18,7 @@ from net_worth_tracker.ignore import ignore_symbols
 
 __all__ = [
     "apeboard",
+    "beefy",
     "binance_smart_chain",
     "binance",
     "blockfi",

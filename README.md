@@ -10,6 +10,7 @@ Can extract crypto portfolio data from:
 - Celsius
 - ApeBoard for tracking on many DeFi chains
 - CoinGecko (for prices)
+- Beefy vaults
 
 and stock/cash balance from:
 - Brand New Day
