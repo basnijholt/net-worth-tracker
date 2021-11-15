@@ -85,6 +85,6 @@ def get_from_blockchain(vault):
     decimals = c.caller.decimals()
     balance /= (10 ** decimals) ** 2
     prices = get_prices()
-    price = prices[pool["oracle"]][ID]
+    price = prices[pool["oracle"]][pool["oracleId"]]
     value = balance * price * euro_per_dollar()
     return {"amount": balance, "value": value, "price": price}
