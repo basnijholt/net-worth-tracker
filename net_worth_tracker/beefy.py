@@ -1,8 +1,11 @@
+from __future__ import annotations
+
 from functools import lru_cache
 
 import js2py
 import requests
 from web3 import HTTPProvider, Web3
+from web3.middleware import geth_poa_middleware
 
 from net_worth_tracker.utils import euro_per_dollar
 
@@ -68,7 +71,7 @@ def get_pools():
     return pools
 
 
-def get_from_blockchain(vault):
+def get_web3_and_contract(vault):
     w3 = Web3(
         HTTPProvider(
             endpoint_uri=RPCS[vault["chain"]],
@@ -77,14 +80,39 @@ def get_from_blockchain(vault):
     )
     ID = vault["id"]
     pool = get_pools()[vault["chain"]][ID]
+    w3.middleware_onion.inject(geth_poa_middleware, layer=0)
+
     c = w3.eth.contract(
         pool["earnContractAddress"],
         abi=get_abis()[vault["abi"]],
     )
-    balance = c.caller.balanceOf(vault["my_address"]) * c.caller.getPricePerFullShare()
-    decimals = c.caller.decimals()
+    return w3, c
+
+
+def get_from_blockchain(
+    vault,
+    w3: Web3 | None = None,
+    contract=None,
+    blocks_back: int = 0,
+    with_timestamp: bool = False,
+):
+    if w3 is None:
+        w3, contract = get_web3_and_contract(vault)
+    block = int(w3.eth.get_block_number() - blocks_back)
+    kw = dict(block_identifier=block)
+    balance = contract.caller.balanceOf(
+        vault["my_address"], **kw
+    ) * contract.caller.getPricePerFullShare(**kw)
+    decimals = contract.caller.decimals()
     balance /= (10 ** decimals) ** 2
     prices = get_prices()
+
+    # Get price
+    pool = get_pools()[vault["chain"]][vault["id"]]
     price = prices[pool["oracle"]][pool["oracleId"]]
+
     value = balance * price * euro_per_dollar()
-    return {"amount": balance, "value": value, "price": price}
+    info = {"amount": balance, "value": value, "price": price}
+    if with_timestamp:
+        info["timestamp"] = w3.eth.get_block(**kw).timestamp
+    return info
