@@ -114,7 +114,7 @@ def load_last_data(split_tri_pool=True, with_price_and_value=False):
         balances_defi = split_out_atricrypto(balances_defi)
 
     if not with_price_and_value:
-        for info in balances_defi.values():
+        for info in chain(balances_defi.values(), balances_wallet.values()):
             info.pop("price", None)
             info.pop("value", None)
 
