@@ -28,7 +28,12 @@ def get_coins(balances, cg: CoinGeckoAPI):
         "flux": "Flux",
         "banana": "ApeSwap Finance",
         "ftm": "Fantom",
+        "xno": "Nano",
+        "luna": "Terra",
+        "wmatic": "Wrapped Matic",
+        "ust": "TerraUSD",
     }
+
     symbols = [c.lower() for c in balances]
 
     coin_list = cg.get_coins_list()
@@ -82,7 +87,7 @@ def get_prices(balances):
 
 
 def add_value_and_price(balances, ignore=("degiro", "brand_new_day")):
-    renames = {"IOTA": "MIOTA"}
+    renames = {"IOTA": "MIOTA", "NANO": "XNO", "WETH.E": "ETH"}
     renames_reverse = {v: k for k, v in renames.items()}
 
     to_fetch = set()
@@ -93,7 +98,9 @@ def add_value_and_price(balances, ignore=("degiro", "brand_new_day")):
 
     to_fetch.discard("EUR")
     prices = get_prices(to_fetch)
-    prices = {renames_reverse.get(coin, coin): price for coin, price in prices.items()}
+    for coin, price in list(prices.items()):
+        if coin in renames_reverse:
+            prices[renames_reverse[coin]] = price
 
     for where, bals in balances.items():
         for coin, bal in bals.items():
