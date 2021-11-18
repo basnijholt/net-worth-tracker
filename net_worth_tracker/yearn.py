@@ -7,7 +7,7 @@ RPCS = {
     "fantom": "https://rpc.ftm.tools",
 }
 
-GITHUB_RAW = "https://raw.githubusercontent.com/yearn/yearn-finance-v3/develop/"
+GITHUB_RAW = "https://raw.githubusercontent.com/yearn/yearn-finance-v3/d3c24208191f17df5e98df0f946fc284c803aacb/"
 
 
 @lru_cache
