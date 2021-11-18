@@ -25,6 +25,8 @@ RENAMES = {
     "beltETH": "ETH",
     "WETH": "ETH",
     "WMATIC": "MATIC",
+    "WETH.E": "ETH",
+    "WBTC": "BTC",
 }
 
 
