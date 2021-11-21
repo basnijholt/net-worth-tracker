@@ -27,6 +27,7 @@ RENAMES = {
     "WMATIC": "MATIC",
     "WETH.E": "ETH",
     "WBTC": "BTC",
+    "USDC.E": "USDC",
 }
 
 
