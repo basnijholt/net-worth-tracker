@@ -182,9 +182,9 @@ def data_to_df(date, data, ignore=(), ignore_symbols=(), renames=RENAMES):
         except KeyError:  # not all entries have "value" key
             pass
         else:
-            info["price"] = info["value"] / info["amount"]
-            if info["value"] == 0:
+            if info["value"] == 0 or info["amount"] == 0:
                 continue
+            info["price"] = info["value"] / info["amount"]
             ratios = {f"ratio_in_{d['where']}": d["value"] / info["value"] for d in lst}
             info.update(ratios)
         infos.append(info)
