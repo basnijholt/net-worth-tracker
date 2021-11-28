@@ -254,7 +254,9 @@ def overview_df(df):
 
 def styled_overview_df(df, min_value=1):
     df_last = overview_df(df)
-    df_last = df_last[df_last.value > min_value].sort_values("value", ascending=False)
+    df_last = df_last[df_last.value.abs() > min_value].sort_values(
+        "value", ascending=False
+    )
     overview = df_last[
         [
             "value",
