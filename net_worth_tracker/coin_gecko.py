@@ -32,6 +32,8 @@ def get_coins(balances, cg: CoinGeckoAPI):
         "luna": "Terra",
         "wmatic": "Wrapped Matic",
         "ust": "TerraUSD",
+        "time": "Wonderland",
+        "mim": "Magic Internet Money",
     }
 
     symbols = [c.lower() for c in balances]
