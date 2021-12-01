@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from typing import Literal
 
 import requests
 
 from net_worth_tracker import coin_gecko, utils
 
-renames = {
+DEFAULT_CHAINS = ("matic", "avax", "ftm", "bsc")
+
+RENAMES = {
     "WBTC": "BTC",
     "WETH": "ETH",
     "WFTM": "FTM",
@@ -22,17 +25,27 @@ renames = {
 }
 
 
-def get_debank(address: str | None = None, chains=("matic", "avax", "ftm", "bsc")):
+def get_debank(
+    address: str | None = None,
+    chains=DEFAULT_CHAINS,
+    which: Literal["defi", "wallet"] = "defi",
+):
     if address is None:
         address = utils.get_password("my_address", "metamask")
     responses = []
+    base = "https://openapi.debank.com/v1/user"
+    if which == "wallet":
+        url = "{base}/token_list?id={address}&chain_id={chain}&is_all=false&has_balance=true"
+    elif which == "defi":
+        url = "{base}/complex_protocol_list?id={address}&chain_id={chain}"
+
     for chain in chains:
-        url = f"https://openapi.debank.com/v1/user/complex_protocol_list?id={address}&chain_id={chain}"
-        responses.extend(requests.get(url).json())
+        _url = url.format(base=base, address=address, chain=chain)
+        responses.extend(requests.get(_url).json())
     return responses
 
 
-def parse_response(responses):
+def parse_defi_response(responses):
     balances = []
     for platform_dict in responses:
         for portfolio_item in platform_dict["portfolio_item_list"]:
@@ -43,7 +56,7 @@ def parse_response(responses):
                     for info in infos:
                         balance = dict(
                             platform=platform_dict["id"],
-                            symbol=renames.get(info["symbol"], info["symbol"]),
+                            symbol=RENAMES.get(info["symbol"], info["symbol"]),
                             amount=info["amount"],
                             price=info["price"],
                             value=info["amount"] * info["price"],
@@ -90,6 +103,24 @@ def parse_response(responses):
     return balances_final
 
 
-def get_balances(address: str | None = None, chains=("matic", "avax", "ftm", "bsc")):
-    responses = get_debank(address, chains)
-    return parse_response(responses)
+def parse_wallet_responses(responses):
+    return utils.combine_balances(
+        *[
+            {
+                RENAMES.get(x["symbol"], x["symbol"]): {
+                    "amount": x["amount"],
+                    "price": x["price"] * utils.euro_per_dollar(),
+                    "value": x["price"] * x["amount"] * utils.euro_per_dollar(),
+                }
+            }
+            for x in responses
+        ]
+    )
+
+
+def get_balances(address: str | None = None, chains=DEFAULT_CHAINS):
+    defi_responses = get_debank(address, chains, "defi")
+    wallet_responses = get_debank(address, chains, "wallet")
+    balances = parse_defi_response(defi_responses)
+    balances["defi_wallet"] = parse_wallet_responses(wallet_responses)
+    return balances
