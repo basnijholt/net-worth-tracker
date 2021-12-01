@@ -43,6 +43,7 @@ def get_prices():
     oracles = {
         "lps": requests.get("https://api.beefy.finance/lps").json(),
         "tokens": requests.get("https://api.beefy.finance/prices").json(),
+        "apy": requests.get("https://api.beefy.finance/apy").json(),
     }
     return oracles
 

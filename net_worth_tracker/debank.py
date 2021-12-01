@@ -45,7 +45,9 @@ def get_debank(
     return responses
 
 
-def parse_defi_response(responses):
+def parse_defi_response(responses, calibrate: bool = True, **extra_renames):
+    renames = RENAMES.copy()
+    renames.update(extra_renames)
     balances = []
     for platform_dict in responses:
         for portfolio_item in platform_dict["portfolio_item_list"]:
@@ -56,7 +58,7 @@ def parse_defi_response(responses):
                     for info in infos:
                         balance = dict(
                             platform=platform_dict["id"],
-                            symbol=RENAMES.get(info["symbol"], info["symbol"]),
+                            symbol=renames.get(info["symbol"], info["symbol"]),
                             amount=info["amount"],
                             price=info["price"],
                             value=info["amount"] * info["price"],
@@ -74,7 +76,7 @@ def parse_defi_response(responses):
         balance = balance.copy()
         balance["value"] *= utils.euro_per_dollar()
         symbol = balance["symbol"]
-        if symbol in prices:
+        if (symbol in prices) and calibrate:
             price = prices[symbol]
             balance["amount"] = balance["value"] / price
             balance["price"] = price
@@ -118,7 +120,7 @@ def parse_wallet_responses(responses):
     )
 
 
-def get_balances(address: str | None = None, chains=DEFAULT_CHAINS):
+def get_debank_balances(address: str | None = None, chains=DEFAULT_CHAINS):
     defi_responses = get_debank(address, chains, "defi")
     wallet_responses = get_debank(address, chains, "wallet")
     balances = parse_defi_response(defi_responses)

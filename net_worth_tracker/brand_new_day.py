@@ -89,7 +89,7 @@ def scrape_brand_new_day(
         return rows
 
 
-def get_balances(scraped_data):
+def get_bnd_balances(scraped_data):
     to_float = lambda x: float(  # noqa: E731
         x.replace("€", "").replace(".", "").replace(",", ".").strip()
     )
