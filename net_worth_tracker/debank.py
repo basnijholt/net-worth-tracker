@@ -14,7 +14,7 @@ RENAMES = {
     "WETH": "ETH",
     "WFTM": "FTM",
     "WMATIC": "MATIC",
-    "am3CRV": "USDT",
+    "am3CRV": "USDC",
     "amDAI": "DAI",
     "amUSDC": "USDC",
     "amUSDT": "USDT",
