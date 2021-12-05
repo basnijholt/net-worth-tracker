@@ -13,7 +13,7 @@ def get_exodus(
     csv_folder: str = "~/Desktop/exodus-exports/",
 ):
     if csv_fname is None:
-        csv_fname = sorted(Path(csv_folder).expanduser().glob("all-txs-*.csv"))[-1]
+        csv_fname = sorted(Path(csv_folder).expanduser().glob("*all-txs-*.csv"))[-1]
     balances = defaultdict(float)
     df = pd.read_csv(Path(csv_fname).expanduser())
     for i, row in df.iterrows():
