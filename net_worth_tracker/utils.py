@@ -10,6 +10,7 @@ from functools import lru_cache
 from pathlib import Path
 
 import keyring
+import numpy as np
 import pandas as pd
 from currency_converter import CurrencyConverter
 from keyrings.cryptfile.cryptfile import CryptFileKeyring
@@ -234,7 +235,8 @@ def at_time_ago(df, time_ago):
     return df[df.date == date].set_index("symbol")
 
 
-def overview_df(df):
+def overview_df(df, currency_symbol="€"):
+    s = currency_symbol
     df_24h = at_time_ago(df, datetime.timedelta(hours=24))
     df_last = at_time_ago(df, datetime.timedelta(0))
     df_1w = at_time_ago(df, datetime.timedelta(days=7))
@@ -242,9 +244,9 @@ def overview_df(df):
     df_last["1w price (%)"] = 100 * (df_last.price - df_1w.price) / df_1w.price
     df_last["24h price (%)"] = 100 * (df_last.price - df_24h.price) / df_24h.price
     df_last["30d price (%)"] = 100 * (df_last.price - df_30d.price) / df_30d.price
-    df_last["ATH price (€)"] = ATH = df.groupby("symbol").max().price
-    df_last["ATH value (€)"] = df.groupby("symbol").max().value
-    df_last["ATL value (€)"] = df.groupby("symbol").min().value
+    df_last[f"ATH price ({s})"] = ATH = df.groupby("symbol").max().price
+    df_last[f"ATH value ({s})"] = df.groupby("symbol").max().value
+    df_last[f"ATL value ({s})"] = df.groupby("symbol").min().value
     ATL = df.groupby("symbol").min().price
     df_last["ATH change (%)"] = 100 * (df_last.price - ATH) / ATH
     df_last["ATL change (%)"] = 100 * (df_last.price - ATL) / ATL
@@ -252,11 +254,12 @@ def overview_df(df):
     return df_last
 
 
-def styled_overview_df(df, min_value=1):
-    df_last = overview_df(df)
+def styled_overview_df(df, min_value=1, currency_symbol="€"):
+    df_last = overview_df(df, currency_symbol)
     df_last = df_last[df_last.value.abs() > min_value].sort_values(
         "value", ascending=False
     )
+    s = currency_symbol
     overview = df_last[
         [
             "value",
@@ -267,8 +270,8 @@ def styled_overview_df(df, min_value=1):
             "30d price (%)",
             "ATH change (%)",
             "ATL change (%)",
-            "ATH price (€)",
-            "ATH value (€)",
+            f"ATH price ({s})",
+            f"ATH value ({s})",
         ]
     ]
 
@@ -285,14 +288,14 @@ def styled_overview_df(df, min_value=1):
     df_last["rel_part"] = 100 * df_last.value / net_worth
     df_last["cum_rel_part"] = df_last["rel_part"].cumsum()
     overview.loc[:, "value"] = df_last.apply(
-        lambda x: f"€{x.value:.2f} ({x.rel_part:.1f}%, {x.cum_rel_part:.1f}%)", axis=1
+        lambda x: f"{s}{x.value:.2f} ({x.rel_part:.1f}%, {x.cum_rel_part:.1f}%)", axis=1
     )
     pct_cols = [c for c in overview.columns if "%" in c]
     format = {c: "{:+.2f}%" for c in pct_cols}
-    format["ATH value (€)"] = "€{:.2f}"
+    format[f"ATH value ({s})"] = s + "{:.2f}"
     format["amount"] = "{:.4f}"
-    for x in ["price", "ATH price (€)", "ATL price (€)"]:
-        format[x] = "€{:.4f}"
+    for x in ["price", f"ATH price ({s})", f"ATL price ({s})"]:
+        format[x] = s + "{:.4f}"
 
     return (
         overview.style.applymap(color_negative_red, subset=pd.IndexSlice[:, pct_cols])
@@ -353,7 +356,21 @@ def add_avg_price(df):
         return gr
 
     df = df.reset_index(drop=True)
-    for symbol, gr in df.groupby("symbol"):
+    for _, gr in df.groupby("symbol"):
         result = _add_avg_price(gr)
         df.loc[gr.index, "avg_price"] = result["avg_price"]
+    return df
+
+
+def denominate_in(df, symbol="BTC", norm=1):
+    df = df.copy()
+    values = []
+    for _, gr in df.groupby("date"):
+        cols = [x for x in gr.columns if x.startswith("value_in")]
+        cols += ["price", "value"]
+        p = gr[gr.symbol == symbol].price
+        values.append(norm * gr[cols].values / p.values[0])
+
+    df.loc[:, cols] = np.vstack(values)
+    df.loc[:, cols].fillna(0)
     return df
