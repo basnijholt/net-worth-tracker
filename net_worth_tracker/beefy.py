@@ -72,6 +72,16 @@ def get_pools():
     return pools
 
 
+@lru_cache
+def get_abi_poly(id):
+    addr = get_pools()["polygon"][id]["tokenAddress"]
+    url = (
+        f"https://api.polygonscan.com/api?module=contract&action=getabi&address={addr}"
+    )
+    r = requests.get(url)
+    return r.json()["result"]
+
+
 def get_web3_and_contract(vault):
     w3 = Web3(
         HTTPProvider(
@@ -83,11 +93,19 @@ def get_web3_and_contract(vault):
     pool = get_pools()[vault["chain"]][ID]
     w3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
-    c = w3.eth.contract(
+    contract_beefy = w3.eth.contract(
         pool["earnContractAddress"],
         abi=get_abis()[vault["abi"]],
     )
-    return w3, c
+    if vault["chain"] == "polygon":
+        # Only works on polygon now
+        contract_underlying = w3.eth.contract(
+            pool["tokenAddress"],
+            abi=get_abi_poly(vault["id"]),
+        )
+    else:
+        contract_underlying = None
+    return w3, contract_beefy, contract_underlying
 
 
 def get_from_blockchain(
@@ -98,7 +116,7 @@ def get_from_blockchain(
     with_timestamp: bool = False,
 ):
     if w3 is None:
-        w3, contract = get_web3_and_contract(vault)
+        w3, contract, _ = get_web3_and_contract(vault)
     block = int(w3.eth.get_block_number() - blocks_back)
     kw = dict(block_identifier=block)
     balance = contract.caller.balanceOf(
