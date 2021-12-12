@@ -38,7 +38,7 @@ def scrape_brand_new_day(
         password_bar.send_keys(password)
 
         login_button = next(
-            b for b in driver.find_elements_by_name("button") if "Inloggen" in b.text
+            b for b in driver.find_elements(By.NAME, "button") if "Inloggen" in b.text
         )
         login_button.click()
 
@@ -52,7 +52,7 @@ def scrape_brand_new_day(
 
         pensioen_rekening = next(
             row
-            for row in accounts_table.find_elements_by_class_name("accountsTableRow")
+            for row in accounts_table.find_elements(By.CLASS_NAME, "accountsTableRow")
             if "Pensioenrekening-beleggen" in row.text
         )
 
@@ -66,7 +66,7 @@ def scrape_brand_new_day(
 
         fondsen_en_geld_button = next(
             li
-            for li in menu.find_elements_by_tag_name("li")
+            for li in menu.find_elements(By.TAG_NAME, "li")
             if "Fondsen & geld" in li.text
         )
         fondsen_en_geld_button.click()
@@ -79,11 +79,11 @@ def scrape_brand_new_day(
 
         table = driver.find_element(By.ID, "fundsMoney")
         header = table.find_element(By.TAG_NAME, "thead")
-        headers = [th.text for th in header.find_elements_by_tag_name("th")]
-        trs = table.find_elements_by_tag_name("tr")
+        headers = [th.text for th in header.find_elements(By.TAG_NAME, "th")]
+        trs = table.find_elements(By.TAG_NAME, "tr")
         rows = []
         for tr in trs:
-            values = [td.text for td in tr.find_elements_by_tag_name("td")]
+            values = [td.text for td in tr.find_elements(By.TAG_NAME, "td")]
             row = dict(zip(headers, values))
             if row.get("Fondsnaam"):  # only add relevant rows
                 rows.append(row)
