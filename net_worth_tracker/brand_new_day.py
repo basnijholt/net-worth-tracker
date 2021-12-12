@@ -25,6 +25,7 @@ def scrape_brand_new_day(
     if password is None:
         password = get_password(username, "brandnewday")
     chrome_options = Options()
+    chrome_options.add_argument("--disable-gpu")
     if headless:
         chrome_options.add_argument("--headless")
 
