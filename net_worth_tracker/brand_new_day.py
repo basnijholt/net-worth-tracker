@@ -32,8 +32,8 @@ def scrape_brand_new_day(
     with webdriver.Chrome(options=chrome_options) as driver:
         # Login
         driver.get("https://secure.brandnewday.nl/mijn-gegevens/inloggen")
-        username_bar = driver.find_element_by_name("username")
-        password_bar = driver.find_element_by_name("password")
+        username_bar = driver.find_element(By.NAME, "username")
+        password_bar = driver.find_element(By.NAME, "password")
         username_bar.send_keys(username)
         password_bar.send_keys(password)
 
@@ -48,7 +48,7 @@ def scrape_brand_new_day(
         )
         WebDriverWait(driver, timeout).until(element_present)
 
-        accounts_table = driver.find_element_by_class_name("accountsTable")
+        accounts_table = driver.find_element(By.CLASS_NAME, "accountsTable")
 
         pensioen_rekening = next(
             row
@@ -56,13 +56,13 @@ def scrape_brand_new_day(
             if "Pensioenrekening-beleggen" in row.text
         )
 
-        pensioen_rekening.find_element_by_class_name("goToButton").click()
+        pensioen_rekening.find_element(By.CLASS_NAME, "goToButton").click()
 
         # Go to "Fondsen & geld" submenu
         element_present = presence_of_element_located((By.CLASS_NAME, "submenu"))
         WebDriverWait(driver, timeout).until(element_present)
 
-        menu = driver.find_element_by_class_name("submenu")
+        menu = driver.find_element(By.CLASS_NAME, "submenu")
 
         fondsen_en_geld_button = next(
             li
@@ -77,8 +77,8 @@ def scrape_brand_new_day(
         )
         WebDriverWait(driver, timeout).until(element_present)
 
-        table = driver.find_element_by_id("fundsMoney")
-        header = table.find_element_by_tag_name("thead")
+        table = driver.find_element(By.ID, "fundsMoney")
+        header = table.find_element(By.TAG_NAME, "thead")
         headers = [th.text for th in header.find_elements_by_tag_name("th")]
         trs = table.find_elements_by_tag_name("tr")
         rows = []
