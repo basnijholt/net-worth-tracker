@@ -14,3 +14,4 @@ selenium
 web3
 yfinance >=0.1.63
 https://github.com/basnijholt/fileup/archive/refs/heads/master.zip
+pre-commit
