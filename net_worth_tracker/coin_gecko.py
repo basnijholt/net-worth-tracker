@@ -57,9 +57,14 @@ def get_coins(balances, cg: CoinGeckoAPI):
             include_market_cap="true",
         )
         mc, info = max(
-            [(prices[info["id"]]["eur_market_cap"], info) for info in infos],
+            (
+                (prices[info["id"]]["eur_market_cap"], info)
+                for info in infos
+                if prices[info["id"]]  # sometimes dict is empty
+            ),
             key=lambda x: x[0],
         )
+
         sym2name[symbol] = info["name"]
         print(
             f"Guessing sym2name => '{info['symbol']}': '{info['name']}' because of higher Market Cap (€{mc:.2f})"
