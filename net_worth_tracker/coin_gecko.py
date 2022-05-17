@@ -34,6 +34,10 @@ def get_coins(balances, cg: CoinGeckoAPI):
         "ust": "TerraUSD",
         "time": "Wonderland",
         "mim": "Magic Internet Money",
+        "usdt": "Tether",
+        "eth": "Ethereum",
+        "usdc": "USD Coin",
+        "dai": "Dai",
     }
 
     symbols = [c.lower() for c in balances]
