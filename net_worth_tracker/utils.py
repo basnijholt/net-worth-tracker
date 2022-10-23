@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import base64
 import configparser
 import contextlib
@@ -32,13 +34,13 @@ RENAMES = {
 }
 
 
-def base64_encode(x: str):
+def base64_encode(x: str) -> str:
     message_bytes = x.encode("ascii")
     base64_bytes = base64.b64encode(message_bytes)
     return base64_bytes.decode("ascii")
 
 
-def base64_decode(x: str):
+def base64_decode(x: str) -> str:
     base64_bytes = x.encode("ascii")
     message_bytes = base64.b64decode(base64_bytes)
     return message_bytes.decode("ascii")
@@ -105,11 +107,13 @@ def read_config(path: Path = DEFAULT_CONFIG):
     return config
 
 
-def fname_from_date(folder, date=None, ext=".json") -> Path:
+def fname_from_date(
+    folder, date: datetime.datetime | None = None, prefix: str = "", ext: str = ".json"
+) -> Path:
     if date is None:
         date = datetime.datetime.now()
     dt_str = date.strftime("%Y%m%d-%H%M%S")
-    fname = Path(folder) / f"{dt_str}{ext}"
+    fname = Path(folder) / f"{prefix}{dt_str}{ext}"
     fname.parent.mkdir(exist_ok=True)
     return fname
 
@@ -148,15 +152,38 @@ def save_data(
         json.dump(data, f, indent="  ")
 
 
-def load_data(folder=Path("data"), ndays: int = 365):
-    fnames = sorted(Path(folder).glob("*.json"))
-    datas = {}
+def _fnames(
+    folder=Path("data"), ndays: int | None = 365, prefix: str = ""
+) -> dict[datetime.datetime, Path]:
+    fnames = sorted(Path(folder).glob(f"{prefix}*.json"))
+    if ndays is None:
+        ndays = 365 * 100  # 100 years
     min_date = datetime.datetime.today() - datetime.timedelta(days=ndays)
+    datas = {}
     for fname in fnames:
-        dt = datetime.datetime.strptime(fname.with_suffix("").name, "%Y%m%d-%H%M%S")
+        date_str = fname.with_suffix("").name
+        if prefix:
+            date_str = date_str.split(prefix, 1)[1]
+        dt = datetime.datetime.strptime(date_str, "%Y%m%d-%H%M%S")
         if dt >= min_date:
-            with fname.open("r") as f:
-                datas[dt] = json.load(f)
+            datas[dt] = fname
+    return datas
+
+
+def latest_fname(folder, prefix: str = "") -> Path | None:
+    fnames = _fnames(folder, ndays=None, prefix=prefix)
+    if fnames:
+        return fnames[max(fnames.keys())]
+    else:
+        return None
+
+
+def load_data(folder=Path("data"), ndays: int = 365, prefix: str = ""):
+    fnames = _fnames(folder, ndays, prefix)
+    datas = {}
+    for dt, fname in fnames.items():
+        with fname.open("r") as f:
+            datas[dt] = json.load(f)
     return datas
 
 

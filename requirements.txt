@@ -5,8 +5,10 @@ jupyter
 keyring
 keyrings.cryptfile
 matplotlib
+mintapi
 numpy
 pandas
+pre-commit
 pycoingecko
 python-binance >=0.7.10
 pyyaml
@@ -14,4 +16,3 @@ selenium
 web3
 yfinance >=0.1.63
 https://github.com/basnijholt/fileup/archive/refs/heads/master.zip
-pre-commit
