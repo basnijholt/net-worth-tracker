@@ -48,6 +48,8 @@ def load_latest_data(folder: str = MINT_DATA_FOLDER) -> dict[str, pd.DataFrame]:
             df = _convert_dates(df)
             if name == "budget_data":
                 df = _parse_budget_data(df)
+            elif name == "transaction_data":
+                df = _parse_transaction_data(df)
             data[name] = df
     return data
 
@@ -62,9 +64,22 @@ def _convert_dates(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+def _expand_columns(df: pd.DataFrame, columns: list[str]) -> pd.DataFrame:
+    """Expand columns in a dataframe."""
+    for col in columns:
+        df = df.join(pd.json_normalize(df[col]).add_prefix(f"{col}."))
+    return df
+
+
 def _parse_budget_data(budget_data: pd.DataFrame) -> pd.DataFrame:
     df = budget_data
-    df = df.join(pd.json_normalize(df.category).add_prefix("category."))
+    df = _expand_columns(df, ["category"])
+    return df
+
+
+def _parse_transaction_data(transaction_data: pd.DataFrame) -> pd.DataFrame:
+    df = transaction_data
+    df = _expand_columns(df, ["accountRef", "category", "fiData"])
     return df
 
 
