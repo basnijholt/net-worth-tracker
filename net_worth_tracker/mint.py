@@ -5,6 +5,8 @@ from datetime import datetime
 
 import mintapi
 import pandas as pd
+import plotly
+import plotly.express as px
 
 import net_worth_tracker as nwt
 
@@ -43,16 +45,27 @@ def load_latest_data(folder: str = MINT_DATA_FOLDER) -> dict[str, pd.DataFrame]:
         fname = nwt.utils.latest_fname(folder, prefix=f"{name}.")
         with fname.open("r") as f:
             df = pd.read_json(f)
-
-            # Convert date strings to datetime
-            date_cols = list(df.columns[df.columns.str.contains("Date")])
-            if "date" in df.columns:
-                date_cols.append("date")
-            for col in date_cols:
-                df[col] = pd.to_datetime(df[col])
-
+            df = _convert_dates(df)
+            if name == "budget_data":
+                df = _parse_budget_data(df)
             data[name] = df
     return data
+
+
+def _convert_dates(df: pd.DataFrame) -> pd.DataFrame:
+    """Convert date string columns to datetimes."""
+    date_cols = list(df.columns[df.columns.str.contains("Date")])
+    if "date" in df.columns:
+        date_cols.append("date")
+    for col in date_cols:
+        df[col] = pd.to_datetime(df[col])
+    return df
+
+
+def _parse_budget_data(budget_data: pd.DataFrame) -> pd.DataFrame:
+    df = budget_data
+    df = df.join(pd.json_normalize(df.category).add_prefix("category."))
+    return df
 
 
 def get_investments(
@@ -60,10 +73,23 @@ def get_investments(
 ) -> pd.DataFrame:
     df = transaction_data
     df.sort_values(by="date", inplace=True)
-    investments = df[df.type == "InvestmentTransaction"]
-    investments.loc[:, "amount_cumsum"] = investments.amount.cumsum()
+    investments = df[df.type == "InvestmentTransaction"].copy()
+    investments["amount_cumsum"] = investments.amount.cumsum()
     # Do not consider transactions before ignore_before
     investments = investments[investments.date >= ignore_before]
     first = investments.iloc[0]
     investments["ndays"] = (investments.date - first.date).dt.days
+    investments["daily_investments"] = investments.amount_cumsum / investments.ndays
     return investments
+
+
+def plot_budget_spending(budget_data: pd.DataFrame) -> plotly.graph_objs.Figure:
+    df = budget_data[budget_data["category.name"] != "Income"]
+    df = (
+        df.groupby(["category.parentName", "category.name"])["amount"]
+        .sum()
+        .reset_index()
+    )
+    return px.sunburst(
+        df, path=["category.parentName", "category.name"], values="amount"
+    )

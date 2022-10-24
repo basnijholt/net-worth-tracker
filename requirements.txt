@@ -8,6 +8,7 @@ matplotlib
 mintapi
 numpy
 pandas
+plotly
 pre-commit
 pycoingecko
 python-binance >=0.7.10
