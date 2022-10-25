@@ -401,3 +401,12 @@ def denominate_in(df, symbol="BTC", norm=1):
     df.loc[:, cols] = np.vstack(values)
     df.loc[:, cols].fillna(0)
     return df
+
+
+def date_of_birth():
+    birthday = get_password("birthday", "me")  # in format "YYYY-MM-DD"
+    return datetime.datetime(*map(int, birthday.split("-")))
+
+
+def age():
+    return (datetime.datetime.now() - date_of_birth()).days / 365
