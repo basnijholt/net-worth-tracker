@@ -29,14 +29,16 @@ def compound(
     inflation: float = 2,
     start_with: int = 200_000,
     interest_per_year: int = 7,
-    # TODO: either use continue_n_years_after_retirement or until_age
 ) -> list[Snapshot]:
+    if n_months is None and continue_n_years_after_retirement is None:
+        raise ValueError(
+            "Must provide either n_months or continue_n_years_after_retirement"
+        )
     pct_per_month = interest_per_year / 12
     save_per_month = average_saving_daily * 365 / 12
 
     lst = []
     total = start_with
-    now = datetime.now()
     months_fire = 0
     date = datetime.now()
     for i in range(12 * 100):
@@ -50,7 +52,7 @@ def compound(
         financially_free = investment_income > monthly_spending
         age = (date - date_of_birth).days / 365 if date_of_birth else None
         ss = Snapshot(
-            date=now + timedelta(days=365.25 / 12 * i),
+            date=date,
             n_months=i,
             n_years=i / 12,
             net_worth=total,
@@ -79,6 +81,7 @@ def cost_in_early_retirement(
     average_saving_daily: float,
     monthly_spending: float,
     n_months: int | None = None,
+    extra_key: str = "start_with",
     date_of_birth: int | None = None,
     yearly_pct_raise: int = 5,
     percent_rule: int = 4,
@@ -99,10 +102,11 @@ def cost_in_early_retirement(
         interest_per_year=interest_per_year,
         continue_n_years_after_retirement=0,
     )
-    frugal = compound(**defaults)
-    kw = dict(defaults, start_with=defaults["start_with"] + extra)
-    spend_it = compound(**kw)
-    n_years = frugal[-1].n_years - spend_it[-1].n_years
+    case_1 = compound(**defaults)
+    kw = defaults.copy()
+    kw[extra_key] += extra
+    case_2 = compound(**kw)
+    n_years = case_1[-1].n_years - case_2[-1].n_years
     if verbose:
         print(f"Extra {extra} will last {n_years} years or {n_years * 12} months")
     return n_years
