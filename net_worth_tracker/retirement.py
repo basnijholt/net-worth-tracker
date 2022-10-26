@@ -3,6 +3,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 
+import pandas as pd
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+
 
 @dataclass
 class Snapshot:
@@ -110,3 +114,40 @@ def cost_in_early_retirement(
     if verbose:
         print(f"Extra {extra} will last {n_years} years or {n_years * 12} months")
     return n_years
+
+
+def plot_net_worth(df_future: pd.DataFrame) -> go.Figure:
+
+    fire_date = df_future[df_future.fire].iloc[0]
+    fig = make_subplots(specs=[[{"secondary_y": True}]])
+    fig.add_trace(
+        go.Scatter(x=df_future.age, y=df_future.net_worth, name="Net worth"),
+        secondary_y=False,
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=df_future.age, y=df_future.monthly_spending, name="Monthly spending"
+        ),
+        secondary_y=True,
+    )
+    fig.update_layout(
+        title_text="Net worth and monthly spending",
+    )
+
+    # Set x-axis title
+    fig.update_xaxes(title_text="Age")
+
+    # Set y-axes titles
+    fig.update_yaxes(title_text="<b>A</b> Net worth", secondary_y=False)
+    fig.update_yaxes(title_text="<b>B</b> Monthly spending", secondary_y=True)
+
+    fig.add_hline(y=fire_date.net_worth, line_dash="dash")
+    fig.add_vrect(
+        x0=fire_date.age,
+        x1=df_future.age.max(),
+        line_width=0,
+        fillcolor="green",
+        opacity=0.2,
+    )
+
+    fig.show()

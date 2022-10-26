@@ -94,6 +94,19 @@ def _parse_budget_data(budget_data: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+def _add_per_category_amount(transaction_data: pd.DataFrame) -> pd.DataFrame:
+    gb = (
+        transaction_data.groupby(["category.parentName", "category.name"])["amount"]
+        .sum()
+        .reset_index()
+    )
+    for i, row in transaction_data.iterrows():
+        sel = (gb["category.parentName"] == row["category.parentName"]) & (
+            row["category.name"] == gb["category.name"]
+        )
+        transaction_data.loc[i, "amount_category"] = gb[sel].amount.item()
+
+
 def _parse_transaction_data(transaction_data: pd.DataFrame) -> pd.DataFrame:
     df = transaction_data
     df = _expand_columns(df, ["accountRef", "category", "fiData"])
@@ -103,6 +116,8 @@ def _parse_transaction_data(transaction_data: pd.DataFrame) -> pd.DataFrame:
     amazon = shopping[shopping["description"].str.contains("Amazon")]
     df.loc[shopping.index, "category.parentName"] = "Shopping"
     df.loc[amazon.index, "category.name"] = "Amazon"
+
+    _add_per_category_amount(df)
 
     return df
 
@@ -134,32 +149,53 @@ def plot_budget_spending(budget_data: pd.DataFrame) -> plotly.graph_objs.Figure:
     )
 
 
-def plot_categories(transaction_data):
-    gb = (
-        transaction_data.groupby(["category.parentName", "category.name"])["amount"]
-        .sum()
-        .reset_index()
-    )
-    for i, row in transaction_data.iterrows():
-        sel = (gb["category.parentName"] == row["category.parentName"]) & (
-            row["category.name"] == gb["category.name"]
-        )
-        transaction_data.loc[i, "amount_tot"] = gb[sel].amount.item()
-    df = transaction_data[transaction_data.amount_tot < 0].copy()
+def _to_spending(transaction_data: pd.DataFrame) -> pd.DataFrame:
+    df = transaction_data[transaction_data.amount_category < 0].copy()
     df = df[
         (df["category.name"] != "Transfer")
         & (df["category.parentName"] != "Transfer")
         & (df["category.parentName"] != "Investments")
     ]
-    df["pct"] = df["amount"] / df["amount"].sum() * 100
-
+    df["amount_pct"] = df["amount"] / df["amount"].sum() * 100
+    df["amount_category_pct"] = (
+        df["amount_category"] / df["amount_category"].sum() * 100
+    )
     df["amount"] = -df["amount"]
+    return df
+
+
+def plot_categories(transaction_data: pd.DataFrame) -> plotly.graph_objs.Figure:
+    df = _to_spending(transaction_data)
     return px.sunburst(
         df,
         path=[
             "category.parentName",
             "category.name",
-            # "description",
         ],
         values="amount",
     )
+
+
+def single_category(
+    transaction_data: pd.DataFrame, category: str = "Groceries"
+) -> pd.DataFrame:
+    return transaction_data[
+        (transaction_data["category.name"] == category)
+        | (transaction_data["category.parentName"] == category)
+    ].sort_values("amount")[["description", "date", "amount"]]
+
+
+def to_clean_up_in_mint(transaction_data):
+    """Transactions that need to be cleaned up in Mint."""
+    pat = "PURCHASE                                AUTHORIZED ON"
+    to_edit = transaction_data[transaction_data.description.str.startswith(pat)]
+    return sorted(
+        to_edit.apply(lambda x: x.description.replace(pat, "")[9:], axis=1).to_list()
+    )
+
+
+def plot_category_histogram(
+    transaction_data: pd.DataFrame, category: str = "Groceries", nbins: int = 30
+) -> plotly.graph_objs.Figure:
+    cat = single_category(transaction_data, category)
+    return px.histogram(cat, x="amount", nbins=nbins)
