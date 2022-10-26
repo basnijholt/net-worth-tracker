@@ -205,3 +205,14 @@ def plot_category_histogram(
         yaxis_title="Frequency",
     )
     return fig
+
+
+def plot_monthly_income(transaction_data: pd.DataFrame) -> plotly.graph_objs.Figure:
+    df = (
+        nwt.mint.single_category(transaction_data, "Income")
+        .set_index("date")
+        .groupby(pd.Grouper(freq="M"))["amount"]
+        .sum()
+    )
+    df.index = df.index.strftime("%Y-%m")
+    return px.bar(df)

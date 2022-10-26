@@ -40,7 +40,7 @@ def compound(
             "Must provide either n_months or continue_n_years_after_retirement"
         )
     pct_per_month = interest_per_year / 12
-    save_per_month = average_saving_daily * 365 / 12
+    save_per_month = average_saving_daily * 365.25 / 12
 
     lst = []
     total = start_with
@@ -118,7 +118,6 @@ def cost_in_early_retirement(
 
 
 def plot_net_worth(df_future: pd.DataFrame) -> go.Figure:
-
     fire_date = df_future[df_future.fire].iloc[0]
     fig = make_subplots(specs=[[{"secondary_y": True}]])
     fig.add_trace(
@@ -134,14 +133,9 @@ def plot_net_worth(df_future: pd.DataFrame) -> go.Figure:
     fig.update_layout(
         title_text="Net worth and monthly spending",
     )
-
-    # Set x-axis title
     fig.update_xaxes(title_text="Age")
-
-    # Set y-axes titles
     fig.update_yaxes(title_text="<b>A</b> Net worth", secondary_y=False)
     fig.update_yaxes(title_text="<b>B</b> Monthly spending", secondary_y=True)
-
     fig.add_hline(y=fire_date.net_worth, line_dash="dash")
     fig.add_vrect(
         x0=fire_date.age,
