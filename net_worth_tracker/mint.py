@@ -198,4 +198,10 @@ def plot_category_histogram(
     transaction_data: pd.DataFrame, category: str = "Groceries", nbins: int = 30
 ) -> plotly.graph_objs.Figure:
     cat = single_category(transaction_data, category)
-    return px.histogram(cat, x="amount", nbins=nbins)
+    fig = px.histogram(cat, x="amount", nbins=nbins)
+    fig.update_layout(
+        title=category.capitalize(),
+        xaxis_title="Amount",
+        yaxis_title="Frequency",
+    )
+    return fig

@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 
 import pandas as pd
+import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
@@ -149,5 +150,23 @@ def plot_net_worth(df_future: pd.DataFrame) -> go.Figure:
         fillcolor="green",
         opacity=0.2,
     )
+    return fig
 
-    fig.show()
+
+def plot_cost_in_early_retirement(**kwargs):
+    # Difference in cost of early retirement
+    sims = [
+        {
+            "amount": amount,
+            "n_months": 12 * cost_in_early_retirement(extra=amount, **kwargs),
+        }
+        for amount in range(-50_000, 50_000, 5_000)
+    ]
+    sims = pd.DataFrame(sims)
+    fig = px.line(sims, x="amount", y="n_months")
+    fig.update_layout(
+        title_text="Difference in time of early retirement",
+    )
+    fig.update_xaxes(title_text="Amount spent in $")
+    fig.update_yaxes(title_text="Months earlier/later")
+    return fig
