@@ -46,7 +46,7 @@ def compound(
     total = start_with
     months_fire = 0
     date = datetime.now()
-    for i in range(12 * 100):
+    for i in range(12 * 200):
         date += timedelta(days=365.25 / 12)
         if i % 12 == 0:
             save_per_month *= 1 + yearly_pct_raise / 100

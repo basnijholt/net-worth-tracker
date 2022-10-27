@@ -18,8 +18,7 @@ MINT_DATA_FOLDER = "mint_data"
 def get_mint() -> mintapi.Mint:
     email = nwt.utils.get_password("email", "mint")
     password = nwt.utils.get_password("password", "mint")
-    mint = mintapi.Mint(email, password)  # Takes about ≈1m30s
-    return mint
+    return mintapi.Mint(email, password)  # Takes about ≈1m30s
 
 
 def update_data(mint: mintapi.Mint, folder: str = MINT_DATA_FOLDER) -> None:
@@ -41,11 +40,11 @@ def update_data(mint: mintapi.Mint, folder: str = MINT_DATA_FOLDER) -> None:
             json.dump(data, f, indent=4)
 
 
-def update(n_tries: int = 5) -> mintapi.Mint:
+def update(folder: str = MINT_DATA_FOLDER, n_tries: int = 5) -> mintapi.Mint:
     mint = nwt.mint.get_mint()
     for _ in range(n_tries):
         try:
-            nwt.mint.update_data(mint)
+            nwt.mint.update_data(folder, mint)
             print("Successfully updated data")
             return mint
         except WebDriverException:  # This error seems to randomly occur
