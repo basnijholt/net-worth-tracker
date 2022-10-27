@@ -128,7 +128,7 @@ def _parse_investment_data(
     investment_data.sort_values(by="date", inplace=True)
     investment_data["amount_cumsum"] = investment_data.amount.cumsum()
     # Do not consider transactions before ignore_before
-    investment_data = investment_data[investment_data.date >= ignore_before]
+    investment_data = investment_data[investment_data.date >= ignore_before].copy()
     first = investment_data.iloc[0]
     investment_data["ndays"] = (investment_data.date - first.date).dt.days
     investment_data["daily_investments"] = (
