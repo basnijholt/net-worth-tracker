@@ -1,5 +1,5 @@
 # simple `crypto-tracker`
-**See your current portofolio balance without the hassle.**
+**See your current portfolio balance without the hassle.**
 
 Can extract crypto portfolio data from:
 - Nexo.io
