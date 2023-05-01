@@ -1,18 +1,13 @@
-from net_worth_tracker import (
+from net_worth_tracker import brand_new_day, degiro, manual, mint, plots, utils
+from net_worth_tracker.crypto import (
     apeboard,
     beefy,
     binance,
     binance_smart_chain,
-    brand_new_day,
     coin_gecko,
     debank,
-    degiro,
     exodus,
-    manual,
-    mint,
     nexo,
-    plots,
-    utils,
     yearn,
 )
 from net_worth_tracker.ignore import ignore_symbols

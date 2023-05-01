@@ -37,7 +37,6 @@ def scrape_nexo_csv(
     with webdriver.Chrome(
         options=chrome_options, desired_capabilities=DesiredCapabilities.CHROME
     ) as driver:
-
         # Login
         driver.get("https://platform.nexo.io/")
         element_present = text_to_be_present_in_element(

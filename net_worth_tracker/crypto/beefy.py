@@ -123,7 +123,7 @@ def get_from_blockchain(
         vault["my_address"], **kw
     ) * contract.caller.getPricePerFullShare(**kw)
     decimals = contract.caller.decimals()
-    balance /= (10 ** decimals) ** 2
+    balance /= (10**decimals) ** 2
     prices = get_prices()
 
     # Get price

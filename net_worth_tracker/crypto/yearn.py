@@ -41,5 +41,5 @@ def get_from_blockchain(vault):
     )
     balance = c.caller.balanceOf(vault["my_address"]) * c.caller.pricePerShare()
     decimals = c.caller.decimals()
-    balance /= (10 ** decimals) ** 2
+    balance /= (10**decimals) ** 2
     return {"amount": balance}
