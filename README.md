@@ -1,38 +1,65 @@
-# simple `crypto-tracker`
-**See your current portfolio balance without the hassle.**
+# 💰 Net Worth Tracker 💹
 
-Can extract crypto portfolio data from:
-- Nexo.io
-- BlockFi
-- Binance Smart Chain (BEP20 tokens + DeFi via [YieldWatch.net](https://www.yieldwatch.net/))
-- Binance.com
-- Exodus wallet
-- Celsius
-- ApeBoard for tracking on many DeFi chains
-- CoinGecko (for prices)
-- Beefy vaults
-- Yearn V3
+🌟 _Effortlessly monitor your portfolio balance in one place!_ 🌟
 
-and stock/cash balance from:
-- Brand New Day
-- DeGiro
+`net-worth-tracker` allows you to keep track of your stock, cash, and crypto portfolio, making it easy to see your total net worth without the need to check multiple platforms. 📈🔍
 
+Supported data sources for stock/cash financial data include:
+
+*   Mint 💵
+*   Brand New Day 🌅
+*   DeGiro 📊
+
+Supported data sources for crypto portfolio data include:
+
+*   Nexo.io 💎
+*   BlockFi 🔒
+*   Binance Smart Chain (BEP20 tokens + DeFi via [YieldWatch.net](https://www.yieldwatch.net/)) 🌐
+*   Binance.com 🪙
+*   Exodus wallet 💼
+*   Celsius ❄️
+*   ApeBoard for tracking on many DeFi chains 🦍
+*   CoinGecko (for prices) 🦎
+*   Beefy vaults 🐄
+*   Yearn V3 🔄
+
+## 🚀 Getting Started
 
 ### Usage
-Run [`crypto-tracker.ipynb`](crypto-tracker.ipynb) and download the correct data.
 
-Set cronjob, using crontab -e
-```
+Run [`crypto-tracker.ipynb`](crypto-tracker.ipynb) and download the appropriate data.
+
+Set up a cronjob, using `crontab -e`:
+
+```javascript
 0 * * * * ~/Sync/Overig/crypto-tracker/run-and-upload.sh
 ```
 
-### Install
+### Installation 🛠️
+
+To install required packages and tools, follow these steps:
+
+1.  Install Python dependencies:
 
 ```
 pip install -r requirements.txt
 ```
-and
-```
+
+2.  Install `chromedriver`:
+
+```bash
 sudo apt install chromium-chromedriver keychain # Ubuntu
 brew cask install chromedriver  # MacOS
 ```
+
+## 📚 Documentation
+
+_Coming soon!_
+
+## 🤝 Contributing
+
+We welcome contributions! Feel free to submit issues or pull requests to improve the project. 🙌
+
+## 📃 License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
