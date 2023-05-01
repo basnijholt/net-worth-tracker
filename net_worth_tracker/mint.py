@@ -44,7 +44,7 @@ def update(folder: str = MINT_DATA_FOLDER, n_tries: int = 5) -> mintapi.Mint:
     mint = nwt.mint.get_mint()
     for _ in range(n_tries):
         try:
-            nwt.mint.update_data(folder, mint)
+            nwt.mint.update_data(mint, folder)
             print("Successfully updated data")
             return mint
         except WebDriverException:  # This error seems to randomly occur
