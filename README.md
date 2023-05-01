@@ -13,11 +13,9 @@ Supported data sources for stock/cash financial data include:
 Supported data sources for crypto portfolio data include:
 
 *   Nexo.io 💎
-*   BlockFi 🔒
 *   Binance Smart Chain (BEP20 tokens + DeFi via [YieldWatch.net](https://www.yieldwatch.net/)) 🌐
 *   Binance.com 🪙
 *   Exodus wallet 💼
-*   Celsius ❄️
 *   ApeBoard for tracking on many DeFi chains 🦍
 *   CoinGecko (for prices) 🦎
 *   Beefy vaults 🐄
